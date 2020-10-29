@@ -39,20 +39,20 @@
                 "ortszusatz": null,
                 "rolle": "Abgeordneter",
                 "bdland": "Hessen",
-		"fraktions": [
-		  {
-		    "name": "Linke",
-		    "beschreibung": "Fraktion Linke Partei...",
-		    "eintrittsdatum": "10.10.2012",
-		    "austrittsdatum": "10.12.2019"
-		  },
-		  {
-		    "name": "SPD",
-		    "beschreibung": "Sozial Demokraten",
-		    "eintrittsdatum": "20.12.2019",
-		    "austrittsdatum": null
-		  }
-		],
+				"fraktions": [
+				  {
+					"name": "Linke",
+					"beschreibung": "Fraktion Linke Partei...",
+					"eintrittsdatum": "10.10.2012",
+					"austrittsdatum": "10.12.2019"
+				  },
+				  {
+					"name": "SPD",
+					"beschreibung": "Sozial Demokraten",
+					"eintrittsdatum": "20.12.2019",
+					"austrittsdatum": null
+				  }
+				]
               }
             }
           ],
@@ -79,7 +79,7 @@
                     "rede_id": "902847524",
                     "redner_id": "13034932"
                   }
-                ],
+                ]
               },
               {
                 "id": "2",
@@ -97,21 +97,21 @@
                         "id": "1",
                         "text": "Hallo ich sage hier etwas",
                         "zeilen_nr": "1022",
-                        "typ": "Paragraf",
+                        "typ": "Paragraf"
                       },
                       {
                         "id": "2",
                         "text": "Jemand anderes erzählt hier was",
                         "zeilen_nr": "1142",
-                        "typ": "Paragraf",
+                        "typ": "Paragraf"
                       },
                       {
                         "id": "3",
                         "text": "Beifall von der SPD",
                         "zeilen_nr": "1143",
-                        "typ": "Kommentar",
+                        "typ": "Kommentar"
                       }
-                    ],
+                    ]
                   },
                   {
                     "nr": "4",
@@ -119,18 +119,18 @@
                     "rede_id": "902847529",
                     "redner_id": "13034932"
                   }
-                ],
+                ]
               },
               {
                 "id": "3",
                 "ablauf_typ": "Tagesordnungspunkt",
                 "thema": "Wieder wird das besprochen",
-                "zeile_nr": "1190",
+                "zeile_nr": "1190"
               }
-            ],
+            ]
           }
         }
-      ],
+      ]
     },
     {
       "id": "18",
@@ -138,5 +138,5 @@
       "ende_datum": "23.09.2017",
 	  "protokolls": []
     }
-  ],
+  ]
 }

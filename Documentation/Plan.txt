@@ -8,3 +8,9 @@ Zeitliche:
 - Bis zum 13. Nov, Ziel: DB (MongoDB), DB-Manager (50%), Page-Crawler(Erster Prototyp - 50%), Task-Manager ( Crawl-Manager & Rest-API 50%)
 - Bis zum 27. Nov, Ziel: Vorläufiger Release (90%) zum Test an anderen Gruppen und auch uns selber
 - Bis zum 04. Dez, Ziel: finale Version liefern und laufen lassen
+
+Präsentation:
+1. About the crawler (What is it?, Component-Diagrams)
+2. DB - Structure
+3. Planung
+4. Habt ihr Fragen?

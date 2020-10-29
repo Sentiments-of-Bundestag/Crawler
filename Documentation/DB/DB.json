@@ -39,20 +39,20 @@
                 "ortszusatz": null,
                 "rolle": "Abgeordneter",
                 "bdland": "Hessen",
-				"fraktions": [
-					{
-						"name": "Linke",
-						"beschreibung": "Fraktion Linke Partei...",
-						"eintrittsdatum": "10.10.2012",
-						"austrittsdatum": "10.12.2019"
-					},
-					{
-						"name": "SPD",
-						"beschreibung": "Sozial Demokraten",
-						"eintrittsdatum": "20.12.2019",
-						"austrittsdatum": null
-					}
-				],
+		"fraktions": [
+		  {
+		    "name": "Linke",
+		    "beschreibung": "Fraktion Linke Partei...",
+		    "eintrittsdatum": "10.10.2012",
+		    "austrittsdatum": "10.12.2019"
+		  },
+		  {
+		    "name": "SPD",
+		    "beschreibung": "Sozial Demokraten",
+		    "eintrittsdatum": "20.12.2019",
+		    "austrittsdatum": null
+		  }
+		],
               }
             }
           ],

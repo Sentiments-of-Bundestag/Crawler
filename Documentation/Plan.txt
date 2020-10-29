@@ -1,0 +1,10 @@
+Aufteilung:
+
+- Service-Management (Crawl-Manager & Rest-API) --> Boris
+- Logic zum Page-Crawler --> Marlon
+- Persistenz (MongoDB & DB-Manager) --> Arnauld
+
+Zeitliche: 
+- Bis zum 13. Nov, Ziel: DB (MongoDB), DB-Manager (50%), Page-Crawler(Erster Prototyp - 50%), Task-Manager ( Crawl-Manager & Rest-API 50%)
+- Bis zum 27. Nov, Ziel: Vorläufiger Release (90%) zum Test an anderen Gruppen und auch uns selber
+- Bis zum 04. Dez, Ziel: finale Version liefern und laufen lassen

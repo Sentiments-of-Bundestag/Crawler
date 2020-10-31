@@ -3,139 +3,140 @@
     {
       "id": "19",
       "anfang_datum": "24.09.2017",
-      "ende_datum": null
+      "ende_datum": null,
+      "protokolls": [
+        {
+          "id": "187",
+          "ort": "Berlin",
+          "naechste_sitzung": "20.11.2020",
+          "sitzung_datum": "19.10.2020",
+          "issn": "032432-24132",
+          "berichtart": "Stenographischer Bericht",
+          "redner_liste": [
+            {
+              "id": "39127467",
+              "person":
+              {
+                "id": "1",
+                "titel": "Dr.",
+                "vorname": "Peter",
+                "nachname": "Lustig",
+                "namenszusatz": null,
+                "ortszusatz": null,
+                "rolle": "Bundespräsident",
+                "bdland": "Bayern"
+              }
+            },
+            {
+              "id": "13034932",
+              "person":
+              {
+                "id": "2",
+                "titel": "Dr.",
+                "vorname": "Franz",
+                "nachname": "Kneifer",
+                "namenszusatz": null,
+                "ortszusatz": null,
+                "rolle": "Abgeordneter",
+                "bdland": "Hessen",
+				"fraktions": [
+				  {
+					"name": "Linke",
+					"beschreibung": "Fraktion Linke Partei...",
+					"eintrittsdatum": "10.10.2012",
+					"austrittsdatum": "10.12.2019"
+				  },
+				  {
+					"name": "SPD",
+					"beschreibung": "Sozial Demokraten",
+					"eintrittsdatum": "20.12.2019",
+					"austrittsdatum": null
+				  }
+				]
+              }
+            }
+          ],
+          "sitzungsverlauf": 
+          {
+            "sitzung_start": "09:37",
+            "sitzung_ende": "17:26",
+            "ablaufspunkte": [
+              {
+                "id": "1",
+                "ablauf_typ": "Sitzungsbeginn",
+                "thema": "",
+                "zeile_nr": "1029",
+                "reden": [
+                  {
+                    "nr": "1",
+                    "zeile_nr": "1021",
+                    "rede_id": "103029423",
+                    "redner_id": "39127467"
+                  },
+                  {
+                    "nr": "2",
+                    "zeile_nr": "1140",
+                    "rede_id": "902847524",
+                    "redner_id": "13034932"
+                  }
+                ]
+              },
+              {
+                "id": "2",
+                "ablauf_typ": "Tagesordnungspunkt",
+                "thema": "Irgendwas wird besprochen",
+                "zeile_nr": "1120",
+                "reden": [
+                  {
+                    "nr": "3",
+                    "zeile_nr": "1021",
+                    "rede_id": "103029426",
+                    "redner_id": "39127467",
+                    "rede_teil": [
+                      {
+                        "id": "1",
+                        "text": "Hallo ich sage hier etwas",
+                        "zeilen_nr": "1022",
+                        "typ": "Paragraf"
+                      },
+                      {
+                        "id": "2",
+                        "text": "Jemand anderes erzählt hier was",
+                        "zeilen_nr": "1142",
+                        "typ": "Paragraf"
+                      },
+                      {
+                        "id": "3",
+                        "text": "Beifall von der SPD",
+                        "zeilen_nr": "1143",
+                        "typ": "Kommentar"
+                      }
+                    ]
+                  },
+                  {
+                    "nr": "4",
+                    "zeile_nr": "1140",
+                    "rede_id": "902847529",
+                    "redner_id": "13034932"
+                  }
+                ]
+              },
+              {
+                "id": "3",
+                "ablauf_typ": "Tagesordnungspunkt",
+                "thema": "Wieder wird das besprochen",
+                "zeile_nr": "1190"
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "id": "18",
       "anfang_datum": "24.09.2013",
-      "ende_datum": "23.09.2017"
+      "ende_datum": "23.09.2017",
+	  "protokolls": []
     }
-  ],
-  "sitzungsverlauf": [
-    {
-      "protokoll_id": "187",
-      "sitzung_start": "09:37",
-      "sitzung_ende": "17:26"
-    }
-  ],
-  "protokoll": [
-    {
-      "id": "187",
-      "ort": "Berlin",
-      "naechste_sitzung": "20.11.2020",
-      "sitzung_datum": "19.10.2020",
-      "issn": "032432-24132",
-      "berichtart": "Stenographischer Bericht",
-      "wahlperiode_id": "19",
-      "sitzungsverlauf_protokoll_id": "187"
-    }
-  ],
-  "person": [
-    {
-      "id": "1",
-      "titel": "Dr.",
-      "vorname": "Peter",
-      "nachname": "Lustig",
-      "namenszusatz": null,
-      "ortszusatz": null,
-      "rolle": "Bundespräsident",
-      "bdland": "Bayern"
-    },
-    {
-      "id": "2",
-      "titel": "Dr.",
-      "vorname": "Franz",
-      "nachname": "Kneifer",
-      "namenszusatz": null,
-      "ortszusatz": null,
-      "rolle": "Abgeordneter",
-      "bdland": "Hessen"
-    }
-  ],
-  "redner": [
-    {
-      "id": "39127467",
-      "person_id": "1"
-    },
-    {
-      "id": "13034932",
-      "person_id": "2"
-    }
-  ],
-  "ablaufspunkt": [
-    {
-      "id": "1",
-      "ablauf_typ": "Sitzungsbeginn",
-      "thema": "",
-      "zeile_nr": "1029",
-      "sitzungsverlauf_protokoll_id": "187"
-    },
-    {
-      "id": "2",
-      "ablauf_typ": "Tagesordnungspunkt",
-      "thema": "Irgendwas wird besprochen",
-      "zeile_nr": "1120",
-      "sitzungsverlauf_protokoll_id": "187"
-    },
-    {
-      "id": "3",
-      "ablauf_typ": "Tagesordnungspunkt",
-      "thema": "Wieder wird das besprochen",
-      "zeile_nr": "1190",
-      "sitzungsverlauf_protokoll_id": "187"
-    }
-  ],
-  "redner_liste": [
-    {
-      "protokoll_id": "187",
-      "redner_id": "13034932",
-      "redner_id`)": null
-    },
-    {
-      "protokoll_id": "187",
-      "redner_id": "39127467",
-      "redner_id`)": null
-    }
-  ],
-  "rede": [
-    {
-      "nr": "1",
-      "zeile_nr": "1021",
-      "rede_id": "103029429",
-      "ablaufspunkt_id": "1",
-      "redner_id": "39127467"
-    },
-    {
-      "nr": "2",
-      "zeile_nr": "1140",
-      "rede_id": "902847526",
-      "ablaufspunkt_id": "3",
-      "redner_id": "13034932"
-    }
-  ],
-  "rede_teil": [
-    {
-      "id": "1",
-      "text": "Hallo ich sage hier etwas",
-      "zeilen_nr": "1022",
-      "typ": "Paragraf",
-      "rede_nr": "1"
-    },
-    {
-      "id": "2",
-      "text": "Jemand anderes erzählt hier was",
-      "zeilen_nr": "1142",
-      "typ": "Paragraf",
-      "rede_nr": "3"
-    },
-    {
-      "id": "3",
-      "text": "Beifall von der SPD",
-      "zeilen_nr": "1143",
-      "typ": "Kommentar",
-      "rede_nr": "3"
-    }
-  ],
-  "fraktion": [],
-  "person_has_fraktion": []
+  ]
 }

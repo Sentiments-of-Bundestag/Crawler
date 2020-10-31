@@ -6,28 +6,54 @@ public class Person {
     private final String titel;
     private final String vorname;
     private final String nachname;
-    private final String namenszusatz;
-    private final String ortszusatz;
-    private final String rolle;
-    private final String bdland;
+    private final String beruf;
+    private final String geschlecht;
+    private final String geburtsdatum;
+    private final String familienstand;
+    private final String religion;
+    private final String geburtsort;
+
+
     private final List<Fraktion> fraktionen;
 
-    public Person(String titel, String vorname, String nachname, String namenszusatz, String ortszusatz, String rolle, String bdland, List<Fraktion> fraktionen) {
+    public Person(String titel, String vorname, String nachname, String beruf, String geschlecht, String geburtsdatum, String familienstand, String religion, String geburtsort, List<Fraktion> fraktionen) {
 
         this.titel = titel;
         this.vorname = vorname;
         this.nachname = nachname;
-        this.namenszusatz = namenszusatz;
-        this.ortszusatz = ortszusatz;
-        this.rolle = rolle;
-        this.bdland = bdland;
+        this.geschlecht = geschlecht;
+        this.geburtsdatum = geburtsdatum;
+        this.familienstand = familienstand;
+        this.religion = religion;
+        this.beruf = beruf;
+        this.geburtsort = geburtsort;
         this.fraktionen = fraktionen;
     }
+
 
     public List<Fraktion> getFraktionen() {
         return fraktionen;
     }
 
+    public String getGeburtsort() {
+        return geburtsort;
+    }
+
+    public String getGeschlecht() {
+        return geschlecht;
+    }
+
+    public String getGeburtsdatum() {
+        return geburtsdatum;
+    }
+
+    public String getFamilienstand() {
+        return familienstand;
+    }
+
+    public String getReligion() {
+        return religion;
+    }
 
     public String getTitel() {
         return titel;
@@ -41,19 +67,8 @@ public class Person {
         return nachname;
     }
 
-    public String getNamenszusatz() {
-        return namenszusatz;
+    public String getBeruf() {
+        return beruf;
     }
 
-    public String getOrtszusatz() {
-        return ortszusatz;
-    }
-
-    public String getRolle() {
-        return rolle;
-    }
-
-    public String getBdland() {
-        return bdland;
-    }
 }

@@ -23,7 +23,7 @@ import org.xml.sax.helpers.DefaultHandler;
 public class PositionalXMLReader {
     final static String LINE_NUMBER_KEY_NAME = "lineNumber";
 
-    public static Document readXML(final InputStream is) throws IOException, SAXException {
+    public static Document readXML(String path) throws IOException, SAXException {
         final Document doc;
         SAXParser parser;
         try {
@@ -85,7 +85,7 @@ public class PositionalXMLReader {
                 }
             }
         };
-        parser.parse(is, handler);
+        parser.parse(path, handler);
 
         return doc;
     }

@@ -3,9 +3,9 @@ package model.Sitzung;
 public class RedeTeil {
     private final String text;
     private final int zeile_nr;
-    private final String typ;
+    private final RedeTeilTyp typ;
 
-    public RedeTeil(String text, int zeile_nr, String typ) {
+    public RedeTeil(String text, int zeile_nr, RedeTeilTyp typ) {
         this.text = text;
         this.zeile_nr = zeile_nr;
         this.typ = typ;
@@ -19,7 +19,7 @@ public class RedeTeil {
         return zeile_nr;
     }
 
-    public String getTyp() {
+    public RedeTeilTyp getTyp() {
         return typ;
     }
 }

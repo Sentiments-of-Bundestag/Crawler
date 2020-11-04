@@ -1,7 +1,5 @@
 package model.Sitzung;
 
-import model.Person.Redner;
-
 import java.util.List;
 
 public class Rede {

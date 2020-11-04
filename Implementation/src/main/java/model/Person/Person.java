@@ -1,14 +1,16 @@
 package model.Person;
 
+import java.util.Date;
 import java.util.List;
 
 public class Person {
+    private final int id;
     private final String titel;
     private final String vorname;
     private final String nachname;
     private final String beruf;
     private final String geschlecht;
-    private final String geburtsdatum;
+    private final Date geburtsdatum;
     private final String familienstand;
     private final String religion;
     private final String geburtsort;
@@ -16,8 +18,8 @@ public class Person {
 
     private final List<Fraktion> fraktionen;
 
-    public Person(String titel, String vorname, String nachname, String beruf, String geschlecht, String geburtsdatum, String familienstand, String religion, String geburtsort, List<Fraktion> fraktionen) {
-
+    public Person(int id, String titel, String vorname, String nachname, String beruf, String geschlecht, Date geburtsdatum, String familienstand, String religion, String geburtsort, List<Fraktion> fraktionen) {
+        this.id = id;
         this.titel = titel;
         this.vorname = vorname;
         this.nachname = nachname;
@@ -30,6 +32,9 @@ public class Person {
         this.fraktionen = fraktionen;
     }
 
+    public int getId() {
+        return id;
+    }
 
     public List<Fraktion> getFraktionen() {
         return fraktionen;
@@ -43,7 +48,7 @@ public class Person {
         return geschlecht;
     }
 
-    public String getGeburtsdatum() {
+    public Date getGeburtsdatum() {
         return geburtsdatum;
     }
 

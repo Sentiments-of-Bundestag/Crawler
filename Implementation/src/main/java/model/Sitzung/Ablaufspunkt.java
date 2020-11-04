@@ -3,19 +3,19 @@ package model.Sitzung;
 import java.util.List;
 
 public class Ablaufspunkt {
-    private final String ablauf_typ;
+    private final AblaufspunktTyp ablauf_typ;
     private final String thema;
     private final int zeile_nr;
     private final List<Rede> reden;
 
-    public Ablaufspunkt(String ablauf_typ, String thema, int zeile_nr, List<Rede> reden) {
+    public Ablaufspunkt(AblaufspunktTyp ablauf_typ, String thema, int zeile_nr, List<Rede> reden) {
         this.ablauf_typ = ablauf_typ;
         this.thema = thema;
         this.zeile_nr = zeile_nr;
         this.reden = reden;
     }
 
-    public String getAblauf_typ() {
+    public AblaufspunktTyp getAblauf_typ() {
         return ablauf_typ;
     }
 

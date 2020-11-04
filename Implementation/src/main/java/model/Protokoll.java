@@ -1,6 +1,6 @@
 package model;
 
-import model.Person.Redner;
+import model.Person.Person;
 import model.Sitzung.Sitzungsverlauf;
 
 import java.util.Date;
@@ -13,10 +13,10 @@ public class Protokoll {
     private final Date sitzung_datum;
     private final String issn;
     private final String berichtart;
-    private final List<Redner> rednerListe;
+    private final List<Person> rednerListe;
     private final Sitzungsverlauf sitzungsverlauf;
 
-    public Protokoll(int id, String ort, Date naechste_sitzung, Date sitzung_datum, String issn, String berichtart, List<Redner> rednerListe, Sitzungsverlauf sitzungsverlauf) {
+    public Protokoll(int id, String ort, Date naechste_sitzung, Date sitzung_datum, String issn, String berichtart, List<Person> rednerListe, Sitzungsverlauf sitzungsverlauf) {
         this.id = id;
         this.ort = ort;
         this.naechste_sitzung = naechste_sitzung;
@@ -31,7 +31,7 @@ public class Protokoll {
         return sitzungsverlauf;
     }
 
-    public List<Redner> getRednerListe() {
+    public List<Person> getRednerListe() {
         return rednerListe;
     }
 

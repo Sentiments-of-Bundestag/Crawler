@@ -1,4 +1,4 @@
-package crawlmanager.service;
+package web.service;
 
 import model.Config.Constants;
 import org.springframework.beans.factory.annotation.Autowired;

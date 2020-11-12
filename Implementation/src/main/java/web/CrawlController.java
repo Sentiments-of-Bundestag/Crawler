@@ -1,6 +1,6 @@
-package crawlmanager;
+package web;
 
-import crawlmanager.service.DynamicScheduler;
+import web.service.DynamicScheduler;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -43,6 +43,13 @@ public class CrawlController {
         TaskScheduler.scheduleWithFrequency(frequency);
 
         return  "Task have been scheduled!";
+    }
+
+    @RequestMapping(value="/task/default",method= RequestMethod.POST)
+    public String addDefaultTask() {
+        TaskScheduler.scheduleDefaultTask();
+
+        return  "Default Task have been scheduled!";
     }
 
     @RequestMapping(value="/task/{id}",method= RequestMethod.GET)

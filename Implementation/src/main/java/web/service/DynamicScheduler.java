@@ -1,6 +1,9 @@
-package crawlmanager.service;
+package web.service;
 
+
+import crawler.run.CrawlToFile;
 import model.Config.Configuration;
+import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
@@ -21,6 +24,8 @@ public class DynamicScheduler implements SchedulingConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicScheduler.class);
 
     ScheduledTaskRegistrar scheduledTaskRegistrar;
+
+
 
     final ConfigRepository repo;
     private ScheduledFuture future;
@@ -137,7 +142,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
             ZoneId zone = ZoneId.of("Europe/Berlin");
             ZoneOffset zoneOffSet = zone.getRules().getOffset(current);
             Instant nextRunTime = current.toInstant(zoneOffSet);
-            future = poolScheduler().schedule(() -> scheduleJob(nextRunTime), nextRunTime);
+            future = poolScheduler().schedule(() -> scheduleSingleCrawlJob(nextRunTime), nextRunTime);
             futureMap.put(future, true);
             //activateFuture(future);
         }
@@ -145,12 +150,19 @@ public class DynamicScheduler implements SchedulingConfigurer {
 
     // Default test Task
     public void scheduleDefaultTask() {
-        this.scheduleAt(LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), LocalTime.now().plusSeconds(20));
+        this.scheduleAt(LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), LocalTime.now().plusSeconds(5));
     }
 
-    public void scheduleJob(Instant nextRunTime) {
+    public void scheduleSingleCrawlJob(Instant nextRunTime) {
         // This is your real code to be scheduled
-        LOGGER.info("scheduleJob: Next execution time of this is specified by user", nextRunTime);
+        LOGGER.info("scheduleSingleCrawlJob: A single CrawlJob have been scheduled by user & will start in 5 seconds");
+        String[]  args = {"-u", "https://www.bundestag.de/services/opendata"};
+        try {
+            final CrawlToFile crawl = new CrawlToFile(args);
+            crawl.crawl();
+        } catch (IllegalArgumentException | ParseException e) {
+            LOGGER.error(e.getMessage());
+        }
     }
 
     public void scheduleDynamically() {

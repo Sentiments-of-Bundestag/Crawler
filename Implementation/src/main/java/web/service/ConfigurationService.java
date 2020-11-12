@@ -1,4 +1,4 @@
-package crawlmanager.service;
+package web.service;
 
 import model.Config.Configuration;
 import model.Config.Constants;

@@ -90,7 +90,7 @@ public class WebClientProvider implements Provider<WebClient> {
         client.getCookieManager().setCookiesEnabled(true);
         client.getOptions().setJavaScriptEnabled(true);
         client.getOptions().setCssEnabled(false);
-        client.getOptions().setTimeout(2000);
+        client.getOptions().setTimeout(connectionTimeout);
         client.setCssErrorHandler(new SilentCssErrorHandler());
         //client.getOptions().setRedirectEnabled(true);
         java.util.logging.Logger

@@ -1,9 +1,14 @@
 package web;
 
-import web.service.DynamicScheduler;
+import model.Crawler.ControllerRequest;
+import model.Crawler.ControllerResponse;
+import model.Crawler.PlanedTask;
 import org.springframework.web.bind.annotation.*;
+import web.service.DynamicScheduler;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 
 @RestController
@@ -15,64 +20,95 @@ public class CrawlController {
         this.TaskScheduler = TaskScheduler;
     }
 
-    @RequestMapping("/")
-    public String index() {
-        return "Hello welcome the the Crawl-Manager!";
+    @GetMapping(value = "/", produces = "application/json")
+    public ControllerResponse index() {
+        ControllerResponse controllerResponse = new ControllerResponse();
+        controllerResponse.setTitle("Hello welcome the the Crawl-Manager!");
+
+        return controllerResponse;
     }
 
-    @RequestMapping("/tasks")
-    public String getTaskList() {
+    @GetMapping(value = "/tasks", produces = "application/json")
+    public ControllerResponse getTaskList() {
+        ControllerResponse controllerResponse = new ControllerResponse();
         Map<ScheduledFuture, Boolean> futureMap = TaskScheduler.getScheduledTasksList();
-        if (futureMap == null) {
-            return "Task list is currently empty!";
+        if (futureMap == null || futureMap.size() == 0) {
+            controllerResponse.setTitle("Task list is currently empty!");
         }
         else {
+            controllerResponse.setTitle("List of tasks");
             String ResultText = "id: \t \t status: \t \t task \n";
             int counter = 0;
+            Set<PlanedTask> planedTasks = new LinkedHashSet<>();
             for (Map.Entry<ScheduledFuture, Boolean> entry : futureMap.entrySet()) {
-                ResultText = ResultText + counter + " \t \t " + entry.getValue() + " \t \t " + entry.getKey().toString() + "\n";
+                planedTasks.add(new PlanedTask(counter, "Task Nr. " + counter, null, "ScheduledTask", entry.getKey().toString(), null));
                 counter++;
             }
-            return  ResultText;
+            controllerResponse.setBody(planedTasks);
         }
-
+        return controllerResponse;
     }
 
-    @RequestMapping(value="/task/{frequency}",method= RequestMethod.POST)
-    public String addTask(@PathVariable int frequency){
-        TaskScheduler.scheduleWithFrequency(frequency);
-
-        return  "Task have been scheduled!";
+    @PostMapping(value = "/task", consumes = "application/json", produces = "application/json")
+    public ControllerResponse addTask(@RequestBody ControllerRequest request){
+        int taskId = TaskScheduler.scheduleWithFrequency(request.getFrequency());
+        ControllerResponse controllerResponse = new ControllerResponse();
+        controllerResponse.setTitle("New task created!");
+        Set<PlanedTask> planedTasks = new LinkedHashSet<>();
+        planedTasks.add(new PlanedTask(taskId, "Task Nr. " + taskId, null, "ScheduledTask", "Frequency = " + request.getFrequency(), null));
+        controllerResponse.setBody(planedTasks);
+        return  controllerResponse;
     }
 
-    @RequestMapping(value="/task/default",method= RequestMethod.POST)
-    public String addDefaultTask() {
-        TaskScheduler.scheduleDefaultTask();
+    @PostMapping(value = "/task/default", produces = "application/json")
+    public ControllerResponse addDefaultTask() {
+        int taskId = TaskScheduler.scheduleDefaultTask();
 
-        return  "Default Task have been scheduled!";
+        ControllerResponse controllerResponse = new ControllerResponse();
+        controllerResponse.setTitle("Default Task have been scheduled!");
+        Set<PlanedTask> planedTasks = new LinkedHashSet<>();
+        planedTasks.add(new PlanedTask(taskId, "Task Nr. " + taskId, null, "ScheduledTask", " One time execution task, will start in 5 sec.", null));
+        controllerResponse.setBody(planedTasks);
+        return  controllerResponse;
     }
 
-    @RequestMapping(value="/task/{id}",method= RequestMethod.GET)
-    public String getTask( @PathVariable int id){
+    @GetMapping(value = "/task/{id}", produces = "application/json")
+    public ControllerResponse getTask( @PathVariable int id){
+        ControllerResponse controllerResponse = new ControllerResponse();
         Map.Entry<ScheduledFuture, Boolean> futureTask = TaskScheduler.getScheduledTaskById(id);
         if (futureTask == null) {
-            return "No task with id (" + id + ") founded!";
+            controllerResponse.setTitle("No task with id (" + id + ") founded!");
         } else {
-            return "id: \t \t status: \t \t task \n" + id + " \t \t " + futureTask.getValue() + " \t \t " + futureTask.getKey().toString() + "\n";
+            controllerResponse.setTitle("One task founded!");
+            Set<PlanedTask> planedTasks = new LinkedHashSet<>();
+
+            planedTasks.add(new PlanedTask(id, "Task Nr. " + id, null, "ScheduledTask, Status: " + futureTask.getValue().toString(), futureTask.getKey().toString(), null));
+            controllerResponse.setBody(planedTasks);
         }
+
+        return  controllerResponse;
     }
 
-    @RequestMapping("/task/cancel/{id}")
-    public  String cancelTaskById( @PathVariable int id) {
+    @GetMapping(value = "/task/cancel/{id}", produces = "application/json")
+    public  ControllerResponse cancelTaskById( @PathVariable int id) {
         int Result = TaskScheduler.cancelById(id);
+        ControllerResponse controllerResponse = new ControllerResponse();
 
-        return Result == -1 ? "No task with id (" + id + ") founded!" : "Task with id (" + id + ") have  been cancelled!";
+        if (Result == -1) {
+            controllerResponse.setTitle("No task with id (" + id + ") founded!");
+        } else {
+            controllerResponse.setTitle("Task with id (" + id + ") have  been cancelled!");
+        }
+
+        return controllerResponse;
     }
 
-    @RequestMapping("/tasks/cancel")
-    public  String cancelAllTasks() {
+    @GetMapping(value="/tasks/cancel", produces = "application/json")
+    public  ControllerResponse cancelAllTasks() {
         TaskScheduler.cancelAll();
+        ControllerResponse controllerResponse = new ControllerResponse();
+        controllerResponse.setTitle("All tasks canceled");
 
-        return "All Tasks have been cancelled!";
+        return controllerResponse;
     }
 }

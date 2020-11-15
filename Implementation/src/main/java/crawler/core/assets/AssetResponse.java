@@ -8,15 +8,19 @@ public class AssetResponse {
 
     private final String url;
     private final String referer;
+    private final String assetPath;
     private final int responseCode;
     private final long fetchTime;
+    private final int assetSize;
 
-    public AssetResponse(String url, String referer, int responseCode, long fetchTime) {
+    public AssetResponse(String url, String referer, String assetPath, int responseCode, long fetchTime, int assetSize) {
         super();
         this.url = url;
+        this.assetPath = assetPath;
         this.responseCode = responseCode;
         this.fetchTime = fetchTime;
         this.referer = referer;
+        this.assetSize = assetSize;
     }
 
     /**
@@ -37,6 +41,8 @@ public class AssetResponse {
         return responseCode;
     }
 
+    public String getAssetPath() { return assetPath; }
+
     public long getFetchTime() {
         return fetchTime;
     }
@@ -45,6 +51,7 @@ public class AssetResponse {
         return referer;
     }
 
+    public int getAssetSize() { return assetSize; }
 
     @Override
     public int hashCode() {
@@ -52,6 +59,10 @@ public class AssetResponse {
         int result = 1;
         result = prime * result + responseCode;
         result = prime * result + ((url == null) ? 0 : url.hashCode());
+        result = prime * result + ((assetPath == null) ? 0 : assetPath.hashCode());
+        result = (int) (prime * result + fetchTime);
+        result = prime * result + ((referer == null) ? 0 : referer.hashCode());
+        result = prime * result + assetSize;
         return result;
     }
 
@@ -62,9 +73,17 @@ public class AssetResponse {
         if (getClass() != obj.getClass()) return false;
         AssetResponse other = (AssetResponse) obj;
         if (responseCode != other.responseCode) return false;
+        if (fetchTime != other.fetchTime) return false;
+        if (assetSize != other.assetSize) return false;
         if (url == null) {
             if (other.url != null) return false;
         } else if (!url.equals(other.url)) return false;
+        if (assetPath == null) {
+            if (other.assetPath != null) return false;
+        } else if (!assetPath.equals(other.assetPath)) return false;
+        if (referer == null) {
+            if (other.referer != null) return false;
+        } else if (!referer.equals(other.referer)) return false;
         return true;
     }
 }

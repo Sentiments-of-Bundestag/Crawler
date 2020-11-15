@@ -17,8 +17,12 @@ import java.util.GregorianCalendar;
 @Service
 public class SchedulerService implements SchedulingConfigurer {
 
+    final ConfigurationService configurationService;
+
     @Autowired
-    ConfigurationService configurationService;
+    public SchedulerService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
 
     public TaskScheduler poolScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
@@ -34,7 +38,6 @@ public class SchedulerService implements SchedulingConfigurer {
         taskRegistrar.addTriggerTask(new Runnable() {
             @Override
             public void run() {
-                // Do not put @Scheduled annotation above this method, we don't need it anymore.
                 configurationService.loadConfigurations();
             }
         }, new Trigger() {

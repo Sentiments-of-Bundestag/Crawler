@@ -117,7 +117,7 @@ public class WebClientProvider implements Provider<WebClient> {
         java.util.logging.Logger
                 .getLogger("org.apache")
                 .setLevel(Level.OFF);
-        if (!"".equals(proxy)) {
+        if (proxy != null && !proxy.isBlank()) {
             StringTokenizer token = new StringTokenizer(proxy, ":");
 
             if (token.countTokens() == 3) {

@@ -17,4 +17,5 @@ dependencies {
     compile 'com.github.javadev:underscore:1.60'
     compile 'org.json:json:20160212'
     compile group: 'com.jcabi', name: 'jcabi-xml', version: '0.16.2'
+    compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
 }

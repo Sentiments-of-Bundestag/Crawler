@@ -10,29 +10,37 @@ import org.json.*;
 import java.util.Collection;
 
 public class dbconnector {
-    public static DBCollection init() {
 
-DBCollection collection= null;
 
+    public static DB  init() {
+
+//DBCollection collection= null;
+DB db=null;
         try {
             Mongo mongo = new Mongo("localhost", 27017);
-            DB db = mongo.getDB("crawler");
+             db = mongo.getDB("crawler");
 
-            String collectionName="crawlercollast";
+          /*  String collectionName="crawlercollast";
 
             if (!db.getCollectionNames().contains(collectionName))
                 db.createCollection( collectionName,  (DBObject) JSON.parse("null"));
 
-             collection = db.getCollection(collectionName);
+             collection = db.getCollection(collectionName);*/
 
         } catch (Exception e) {
         }
 
-        return collection;
+        return db;
     }
-    public static JSONObject call(BasicDBObject query, DBCollection collection) {
+    public static JSONObject call(BasicDBObject query, DB  db) {
 
         BasicDBObject all= new BasicDBObject();
+        String collectionName="crawlercollast";
+
+        if (!db.getCollectionNames().contains(collectionName))
+            db.createCollection( collectionName,  (DBObject) JSON.parse("null"));
+
+      DBCollection  collection = db.getCollection(collectionName);
 
        DBCursor cursor =collection.find(all,query);
        String result="";

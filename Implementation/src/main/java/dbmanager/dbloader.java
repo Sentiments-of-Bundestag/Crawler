@@ -20,7 +20,14 @@ import com.mongodb.MongoClient;
 import com.mongodb.*;
 
 public class dbloader {
-    public static void dbpush( File xmlFile,DBCollection collection ) {
+    public static void dbpush( File xmlFile,DB  db ) {
+
+        String collectionName="crawlercollast";
+
+        if (!db.getCollectionNames().contains(collectionName))
+            db.createCollection( collectionName,  (DBObject) JSON.parse("null"));
+
+    DBCollection   collection = db.getCollection(collectionName);
  try
     {
         XML xml = new XMLDocument(xmlFile);
@@ -35,4 +42,5 @@ public class dbloader {
 
     }catch(Exception e){}
     }
+
 }

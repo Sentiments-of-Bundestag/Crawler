@@ -1,9 +1,12 @@
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 import org.json.JSONObject;
 import xmlparser.XMLparser;
 import dbmanager.dbconnector;
 import dbmanager.dbloader;
+import com.mongodb.*;
 
 import java.io.File;
 import java.net.URL;
@@ -17,13 +20,14 @@ public class main {
     }
      static void  TestDB(String input){
         File file = new File(new File("").getAbsolutePath() + input);
-        DBCollection DBC=dbconnector.init();
-        dbloader.dbpush(file, DBC);
+        DB  db=dbconnector.init();
+
+        dbloader.dbpush(file, db);
 
         //Mongo DB Query
         BasicDBObject query= new BasicDBObject();
         query.put("name","Müller");
-        JSONObject json= dbconnector.call(query,DBC );
+        JSONObject json= dbconnector.call(query,db );
         //System.out.println(json.toString());
     }
 }

@@ -1,5 +1,7 @@
 package crawler.core;
 
+import crawler.core.assets.AssetResponse;
+
 import java.util.Collections;
 import java.util.Set;
 
@@ -14,22 +16,31 @@ public class CrawlerResult {
     private final Set<HTMLPageResponse> nonWorkingResponses;
     private final Set<HTMLPageResponse> verifiedResponses;
     private final String startPoint;
+    private final Set<AssetResponse> loadedAssets;
 
     /**
      * Create the result from a crawl.
-     *
-     * @param theStartPoint where the crawl was started
+     *  @param theStartPoint where the crawl was started
      * @param theUrls the urls that was fetched
      * @param theVerifiedResponses the verified responses
      * @param theNonWorkingResponses the non working urls
+     * @param theLoadedAssets
      */
     public CrawlerResult(String theStartPoint, Set<CrawlerURL> theUrls,
-                         Set<HTMLPageResponse> theVerifiedResponses, Set<HTMLPageResponse> theNonWorkingResponses) {
+                         Set<HTMLPageResponse> theVerifiedResponses, Set<HTMLPageResponse> theNonWorkingResponses, Set<AssetResponse> theLoadedAssets) {
         startPoint = theStartPoint;
         urls = theUrls;
         nonWorkingResponses = theNonWorkingResponses;
         verifiedResponses = theVerifiedResponses;
+        loadedAssets = theLoadedAssets;
     }
+
+    /**
+     * Get the list of downloaded assets
+     *
+     * @return list of downloaded assets
+     */
+    public Set<AssetResponse> getLoadedAssets() {return Collections.unmodifiableSet(loadedAssets); }
 
     /**
      * Get the non working urls.

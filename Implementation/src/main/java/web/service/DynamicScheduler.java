@@ -25,8 +25,6 @@ public class DynamicScheduler implements SchedulingConfigurer {
 
     ScheduledTaskRegistrar scheduledTaskRegistrar;
 
-
-
     final ConfigRepository repo;
     private ScheduledFuture future;
     private Map<ScheduledFuture, Boolean> futureMap;
@@ -120,7 +118,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
     }
 
     // Start process with frequency in second
-    public  void scheduleWithFrequency(int frequency) {
+    public int scheduleWithFrequency(int frequency) {
         future = poolScheduler().schedule(() -> scheduleFixed(frequency), t -> {
             Calendar nextExecutionTime = new GregorianCalendar();
             Date lastActualExecutionTime = t.lastActualExecutionTime();
@@ -129,10 +127,11 @@ public class DynamicScheduler implements SchedulingConfigurer {
             return nextExecutionTime.getTime();
         });
         futureMap.put(future, true);
+        return futureMap.size() - 1;
     }
 
     // startDate and endDate are only calendar date and time indicates at which hour/minute of the day.
-    public void scheduleAt(LocalDate startDate, LocalDate endDate, LocalTime time) {
+    public int scheduleAt(LocalDate startDate, LocalDate endDate, LocalTime time) {
         LocalDate now = LocalDate.now();
         if (now.isBefore(endDate)) {
             if (now.isBefore(startDate)) {
@@ -144,13 +143,13 @@ public class DynamicScheduler implements SchedulingConfigurer {
             Instant nextRunTime = current.toInstant(zoneOffSet);
             future = poolScheduler().schedule(() -> scheduleSingleCrawlJob(nextRunTime), nextRunTime);
             futureMap.put(future, true);
-            //activateFuture(future);
         }
+        return futureMap.size() - 1;
     }
 
     // Default test Task
-    public void scheduleDefaultTask() {
-        this.scheduleAt(LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), LocalTime.now().plusSeconds(5));
+    public int scheduleDefaultTask() {
+        return this.scheduleAt(LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), LocalTime.now().plusSeconds(5));
     }
 
     public void scheduleSingleCrawlJob(Instant nextRunTime) {

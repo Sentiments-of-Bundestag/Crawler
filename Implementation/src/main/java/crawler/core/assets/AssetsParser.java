@@ -1,9 +1,7 @@
 package crawler.core.assets;
 
-import org.jsoup.nodes.Document;
-import crawler.core.CrawlerURL;
-
-import java.util.Set;
+import model.Protokoll;
+import model.Wahlperiode;
 
 /**
  * Interface for parsing all the assets of a HTML document.
@@ -11,5 +9,7 @@ import java.util.Set;
  */
 public interface AssetsParser {
 
-    Set<CrawlerURL> getAssets(Document doc, String referer);
+    Protokoll getProtocol(String protocolVersion, String fileName);
+
+    Wahlperiode getWahlPeriode(String wahlPeriodeVersion, String fileName);
 }

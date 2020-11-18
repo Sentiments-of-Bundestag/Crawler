@@ -1,8 +1,8 @@
 package dbmanager;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
-import model.Person.*;
-import model.Sitzung.*;
+import models.Person.*;
+import models.Sitzung.*;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -72,7 +72,7 @@ public class dbconfig {
 
         DBCollection ablaufspunkt_col = db.getCollection(collectionName);
         String json = "{ 'id' : "+ablaufspunkt_col.count()+" , " +
-                "'ablauf_typ' : "+ablaufspunkt.getAblauf_typ()+" , " +
+                "'ablauf_typ' : "+ablaufspunkt.getAblaufTyp()+" , " +
                 "'thema' : "+ablaufspunkt.getThema()+" , " +
                 "'zeile_nr' :"+ablaufspunkt.getZeile_nr()+  "," +
                 "'sitzungsverlauf_protokoll_id' :"+   "," +

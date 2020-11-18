@@ -6,12 +6,14 @@ package crawler.core.assets;
  */
 public class AssetResponse {
 
-    private final String url;
-    private final String referer;
-    private final String assetPath;
-    private final int responseCode;
-    private final long fetchTime;
-    private final int assetSize;
+    String url;
+    String referer;
+    String assetPath;
+    int responseCode;
+    long fetchTime;
+    int assetSize;
+
+    public AssetResponse() {}
 
     public AssetResponse(String url, String referer, String assetPath, int responseCode, long fetchTime, int assetSize) {
         super();
@@ -85,5 +87,29 @@ public class AssetResponse {
             if (other.referer != null) return false;
         } else if (!referer.equals(other.referer)) return false;
         return true;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setReferer(String referer) {
+        this.referer = referer;
+    }
+
+    public void setAssetPath(String assetPath) {
+        this.assetPath = assetPath;
+    }
+
+    public void setResponseCode(int responseCode) {
+        this.responseCode = responseCode;
+    }
+
+    public void setFetchTime(long fetchTime) {
+        this.fetchTime = fetchTime;
+    }
+
+    public void setAssetSize(int assetSize) {
+        this.assetSize = assetSize;
     }
 }

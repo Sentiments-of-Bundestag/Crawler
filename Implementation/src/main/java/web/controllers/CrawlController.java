@@ -1,8 +1,8 @@
-package web;
+package web.controllers;
 
-import model.Crawler.ControllerRequest;
-import model.Crawler.ControllerResponse;
-import model.Crawler.PlanedTask;
+import models.Crawler.ControllerRequest;
+import models.Crawler.ControllerResponse;
+import models.Crawler.PlanedTask;
 import org.springframework.web.bind.annotation.*;
 import web.service.DynamicScheduler;
 

@@ -1,6 +1,7 @@
 package crawler.core;
 
 import crawler.core.assets.AssetResponse;
+import models.Protokoll;
 
 import java.util.Collections;
 import java.util.Set;
@@ -16,23 +17,29 @@ public class CrawlerResult {
     private final Set<HTMLPageResponse> nonWorkingResponses;
     private final Set<HTMLPageResponse> verifiedResponses;
     private final String startPoint;
+    private final String startPointHost;
     private final Set<AssetResponse> loadedAssets;
+    private final Set<Protokoll> loadedProtokolls;
 
     /**
      * Create the result from a crawl.
-     *  @param theStartPoint where the crawl was started
+     * @param theStartPoint where the crawl was started
      * @param theUrls the urls that was fetched
      * @param theVerifiedResponses the verified responses
      * @param theNonWorkingResponses the non working urls
+     * @param theStartPointHost
      * @param theLoadedAssets
+     * @param theLoadedProtokolls
      */
     public CrawlerResult(String theStartPoint, Set<CrawlerURL> theUrls,
-                         Set<HTMLPageResponse> theVerifiedResponses, Set<HTMLPageResponse> theNonWorkingResponses, Set<AssetResponse> theLoadedAssets) {
+                         Set<HTMLPageResponse> theVerifiedResponses, Set<HTMLPageResponse> theNonWorkingResponses, String theStartPointHost, Set<AssetResponse> theLoadedAssets, Set<Protokoll> theLoadedProtokolls) {
         startPoint = theStartPoint;
         urls = theUrls;
         nonWorkingResponses = theNonWorkingResponses;
         verifiedResponses = theVerifiedResponses;
+        startPointHost = theStartPointHost;
         loadedAssets = theLoadedAssets;
+        loadedProtokolls = theLoadedProtokolls;
     }
 
     /**
@@ -65,7 +72,7 @@ public class CrawlerResult {
      *
      * @return the start point of the crawl.
      */
-    public String getTheStartPoint() {
+    public String getStartPoint() {
         return startPoint;
     }
 
@@ -78,4 +85,19 @@ public class CrawlerResult {
         return Collections.unmodifiableSet(urls);
     }
 
+    public Set<HTMLPageResponse> getNonWorkingResponses() {
+        return nonWorkingResponses;
+    }
+
+    public Set<HTMLPageResponse> getVerifiedResponses() {
+        return verifiedResponses;
+    }
+
+    public String getStartPointHost() {
+        return startPointHost;
+    }
+
+    public Set<Protokoll> getLoadedProtokolls() {
+        return loadedProtokolls;
+    }
 }

@@ -1,10 +1,12 @@
-package model.Crawler;
+package models.Crawler;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.Objects;
 
+@Document
 public class PlanedTask {
     @Id
     int id;

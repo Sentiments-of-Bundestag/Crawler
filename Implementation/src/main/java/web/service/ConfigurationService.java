@@ -1,8 +1,8 @@
 package web.service;
 
-import model.Config.Configuration;
-import model.Config.Constants;
-import repository.ConfigRepository;
+import models.Crawler.Configuration;
+import models.Crawler.Constants;
+import repositories.Crawler.ConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +26,14 @@ public class ConfigurationService {
 
     private static final Logger LOGGER  = LoggerFactory.getLogger(ConfigurationService.class);
 
-    ConfigRepository configRepository;
+    ConfigurationRepository configRepository;
 
     private final Map<String, Configuration> configurationList;
 
     private final List<String> mandatoryConfigs;
 
     @Autowired
-    public ConfigurationService(ConfigRepository configRepository) {
+    public ConfigurationService(ConfigurationRepository configRepository) {
         this.configRepository = configRepository;
         this.configurationList = new ConcurrentHashMap<>();
         this.mandatoryConfigs = new ArrayList<>();

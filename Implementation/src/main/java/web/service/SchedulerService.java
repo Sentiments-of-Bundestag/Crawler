@@ -1,6 +1,6 @@
 package web.service;
 
-import model.Config.Constants;
+import models.Crawler.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;

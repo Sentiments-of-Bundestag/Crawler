@@ -1,4 +1,4 @@
-package model.Crawler;
+package models.Crawler;
 
 import java.util.Objects;
 import java.util.Set;

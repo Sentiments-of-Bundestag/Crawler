@@ -8,12 +8,14 @@ import crawler.core.CrawlerURL;
 import crawler.core.HTMLPageResponse;
 import crawler.module.CrawlModule;
 import crawler.util.StatusCode;
+import models.Crawler.Url;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.http.HttpStatus;
 
 import java.io.*;
+import java.util.Set;
 
 /**
  * Crawl to File. To files will be created, one with the working urls &amp; one with the none working
@@ -40,30 +42,11 @@ public class CrawlToFile extends AbstractCrawl {
         verbose = Boolean.parseBoolean(getLine().getOptionValue("verbose", "false"));
     }
 
-    /**
-     * Run.
-     *
-     * @param args the args
-     */
-    public static void main(String[] args) {
-
-        try {
-            final CrawlToFile crawl = new CrawlToFile(args);
-            crawl.crawl();
-
-        } catch (ParseException e) {
-            System.err.print(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.err.println(e.getMessage());
-        }
-
-    }
-
-    public void crawl() {
+    public CrawlerResult crawl(Set<Url> dbUrls) {
         final Injector injector = Guice.createInjector(new CrawlModule());
         final Crawler crawler = injector.getInstance(Crawler.class);
 
-        final CrawlerResult result = crawler.getUrls(getConfiguration());
+        final CrawlerResult result = crawler.getUrls(getConfiguration(), dbUrls);
 
         final StringBuilder workingUrls = new StringBuilder();
         final StringBuilder nonWorkingUrls = new StringBuilder();
@@ -93,6 +76,8 @@ public class CrawlToFile extends AbstractCrawl {
         }
 
         crawler.shutdown();
+
+        return result;
     }
 
     /**

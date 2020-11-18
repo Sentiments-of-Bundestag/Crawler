@@ -11,8 +11,6 @@ import java.util.Map;
  */
 public final class CrawlerConfiguration {
 
-    // Property names for System properties.
-
     /**
      * System property for max number of http threads.
      */
@@ -64,8 +62,7 @@ public final class CrawlerConfiguration {
     private String requestHeaders = "";
     private String fileFilters = "";
     private String downloadFileLocation = "";
-
-    private String startUrl;
+    private String startUrl = "";
     private Map<String, String> requestHeadersMap = Collections.emptyMap();
 
     private boolean verifyUrls = DEFAULT_SHOULD_VERIFY_URLS;

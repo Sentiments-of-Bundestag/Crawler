@@ -6,9 +6,7 @@ import crawler.core.HTMLPageResponseFetcher;
 import crawler.core.PageURLParser;
 import crawler.core.assets.AssetFetcher;
 import crawler.core.assets.AssetsParser;
-import crawler.core.assets.AssetsVerifier;
 import crawler.core.assets.impl.DefaultAssetsParser;
-import crawler.core.assets.impl.DefaultAssetsVerifier;
 import crawler.core.assets.impl.HTTPClientAssetFetcher;
 import crawler.core.impl.AhrefPageURLParser;
 import crawler.core.impl.DefaultCrawler;
@@ -37,7 +35,6 @@ public class CrawlModule extends AbstractPropertiesModule {
 
         // For parsing assets
         bind(AssetsParser.class).to(DefaultAssetsParser.class);
-        bind(AssetsVerifier.class).to(DefaultAssetsVerifier.class);
         bind(AssetFetcher.class).to(HTTPClientAssetFetcher.class);
     }
 }

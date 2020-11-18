@@ -1,4 +1,4 @@
-package model.Config;
+package models.Crawler;
 
 public class Constants {
 

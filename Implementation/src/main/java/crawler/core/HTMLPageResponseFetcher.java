@@ -1,6 +1,5 @@
 package crawler.core;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -21,9 +20,6 @@ public interface HTMLPageResponseFetcher {
     HTMLPageResponse get(CrawlerURL url, boolean fetchBody,
                          Map<String, String> requestHeaders,
                          boolean followRedirectsToNewDomain);
-
-
-    HTMLPageResponse saveAs(final File file, CrawlerURL url, boolean getPage, Map<String, String> requestHeaders);
 
     /**
      * Shutdown the fetcher and all of it's assets.

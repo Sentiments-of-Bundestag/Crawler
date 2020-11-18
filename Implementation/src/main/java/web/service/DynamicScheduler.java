@@ -1,9 +1,13 @@
 package web.service;
 
 
+import crawler.core.CrawlerResult;
+import crawler.core.assets.AssetResponse;
 import crawler.run.CrawlToFile;
-import model.Config.Configuration;
+import models.Crawler.Configuration;
+import models.Crawler.Url;
 import org.apache.commons.cli.ParseException;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
@@ -11,7 +15,9 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.stereotype.Service;
-import repository.ConfigRepository;
+import repositories.Crawler.ConfigurationRepository;
+import repositories.Crawler.UrlRepository;
+import repositories.ProtokollRepository;
 
 import javax.annotation.PostConstruct;
 import java.time.*;
@@ -25,21 +31,33 @@ public class DynamicScheduler implements SchedulingConfigurer {
 
     ScheduledTaskRegistrar scheduledTaskRegistrar;
 
+    private final ConfigurationRepository configurationRepository;
+    private final UrlRepository urlRepository;
+    private final ProtokollRepository protokollRepository;
 
-
-    final ConfigRepository repo;
     private ScheduledFuture future;
     private Map<ScheduledFuture, Boolean> futureMap;
 
-    public DynamicScheduler(ConfigRepository repo) {
-        this.repo = repo;
+    public DynamicScheduler(ConfigurationRepository configurationRepository, UrlRepository urlRepository, ProtokollRepository protokollRepository) {
+        this.configurationRepository = configurationRepository;
+        this.urlRepository = urlRepository;
+        this.protokollRepository = protokollRepository;
     }
 
     @PostConstruct
     public void initDatabase() {
         futureMap = new HashMap<>();
-        Configuration config = new Configuration("next_exec_time", "4");
-        repo.save(config);
+        Set<Configuration> configs = new LinkedHashSet<Configuration>();
+        Optional<Configuration> dbConfig = configurationRepository.findById("next_exec_time");
+        if (dbConfig.isEmpty()) {
+            configs.add(new Configuration("next_exec_time", "4"));
+        }
+        dbConfig = configurationRepository.findById("seed_url");
+        if (dbConfig.isEmpty()) {
+            configs.add(new Configuration("seed_url", "https://www.bundestag.de/services/opendata"));
+        }
+
+        configurationRepository.saveAll(configs);
     }
 
     public TaskScheduler poolScheduler() {
@@ -120,7 +138,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
     }
 
     // Start process with frequency in second
-    public  void scheduleWithFrequency(int frequency) {
+    public int scheduleWithFrequency(int frequency) {
         future = poolScheduler().schedule(() -> scheduleFixed(frequency), t -> {
             Calendar nextExecutionTime = new GregorianCalendar();
             Date lastActualExecutionTime = t.lastActualExecutionTime();
@@ -129,10 +147,11 @@ public class DynamicScheduler implements SchedulingConfigurer {
             return nextExecutionTime.getTime();
         });
         futureMap.put(future, true);
+        return futureMap.size() - 1;
     }
 
     // startDate and endDate are only calendar date and time indicates at which hour/minute of the day.
-    public void scheduleAt(LocalDate startDate, LocalDate endDate, LocalTime time) {
+    public int scheduleAt(LocalDate startDate, LocalDate endDate, LocalTime time) {
         LocalDate now = LocalDate.now();
         if (now.isBefore(endDate)) {
             if (now.isBefore(startDate)) {
@@ -144,22 +163,42 @@ public class DynamicScheduler implements SchedulingConfigurer {
             Instant nextRunTime = current.toInstant(zoneOffSet);
             future = poolScheduler().schedule(() -> scheduleSingleCrawlJob(nextRunTime), nextRunTime);
             futureMap.put(future, true);
-            //activateFuture(future);
         }
+        return futureMap.size() - 1;
     }
 
     // Default test Task
-    public void scheduleDefaultTask() {
-        this.scheduleAt(LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), LocalTime.now().plusSeconds(5));
+    public int scheduleDefaultTask() {
+        return this.scheduleAt(LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), LocalTime.now().plusSeconds(5));
     }
 
     public void scheduleSingleCrawlJob(Instant nextRunTime) {
         // This is your real code to be scheduled
         LOGGER.info("scheduleSingleCrawlJob: A single CrawlJob have been scheduled by user & will start in 5 seconds");
-        String[]  args = {"-u", "https://www.bundestag.de/services/opendata"};
+        Optional<Configuration> seedUrlConfig = configurationRepository.findById("seed_url");
+        String[] args = {"-u", seedUrlConfig.isEmpty() ? "https://www.bundestag.de/services/opendata" : seedUrlConfig.get().getConfigValue()};
         try {
+            Optional<Url> startUrl = urlRepository.findById(args[1]);
             final CrawlToFile crawl = new CrawlToFile(args);
-            crawl.crawl();
+            CrawlerResult crawlerResult = crawl.crawl(new LinkedHashSet<>(urlRepository.findAll()));
+            if (crawlerResult != null) {
+                Set<Url> dbUrls = new LinkedHashSet<Url>();
+                for (AssetResponse assetResponse : crawlerResult.getLoadedAssets()) {
+                    dbUrls.add(new Url(crawlerResult.getStartPointHost(), assetResponse.getUrl(), new Date(System.currentTimeMillis()), assetResponse.getResponseCode(), assetResponse.getAssetPath(), assetResponse.getAssetSize(), "Asset"));
+                }
+
+                if (startUrl.isEmpty()) {
+                    dbUrls.add(new Url(crawlerResult.getStartPointHost(), crawlerResult.getStartPoint(), new Date(System.currentTimeMillis()), HttpStatus.SC_OK, "", -1, "Page"));
+                }
+
+                urlRepository.saveAll(dbUrls);
+
+                if (startUrl.isPresent()) {
+                    Url existingStartUrl = startUrl.get();
+                    existingStartUrl.setLastRequestTime(new Date(System.currentTimeMillis()));
+                    urlRepository.save(existingStartUrl);
+                }
+            }
         } catch (IllegalArgumentException | ParseException e) {
             LOGGER.error(e.getMessage());
         }

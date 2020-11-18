@@ -1,7 +1,7 @@
 package crawler.core.assets;
 
-import org.jsoup.nodes.Document;
-import crawler.core.CrawlerURL;
+import models.Protokoll;
+import models.Wahlperiode;
 
 import java.util.Set;
 
@@ -11,5 +11,9 @@ import java.util.Set;
  */
 public interface AssetsParser {
 
-    Set<CrawlerURL> getAssets(Document doc, String referer);
+    Protokoll getProtokoll(String protocolVersion, String fileName);
+
+    Wahlperiode getWahlPeriode(String wahlPeriodeVersion, String fileName);
+
+    Set<Protokoll> getProtokolls(Set<AssetResponse> assetResponses);
 }

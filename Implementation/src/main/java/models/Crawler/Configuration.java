@@ -1,7 +1,11 @@
-package model.Config;
+package models.Crawler;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Objects;
+
+@Document
 public class Configuration {
 
     @Id
@@ -38,5 +42,19 @@ public class Configuration {
         return String.format(
                 "Customer[configKey=%s, configValue='%s']",
                 configKey, configValue);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Configuration)) return false;
+        Configuration that = (Configuration) o;
+        return configKey.equals(that.configKey) &&
+                configValue.equals(that.configValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(configKey, configValue);
     }
 }

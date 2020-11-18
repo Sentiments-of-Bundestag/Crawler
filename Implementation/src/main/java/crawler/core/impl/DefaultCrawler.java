@@ -3,14 +3,17 @@ package crawler.core.impl;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import crawler.core.*;
+import crawler.core.assets.AssetFetcher;
+import crawler.core.assets.AssetResponse;
+import crawler.core.assets.AssetResponseCallable;
+import crawler.core.assets.AssetsParser;
 import crawler.util.StatusCode;
+import models.Crawler.Url;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import web.service.DynamicScheduler;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
@@ -24,28 +27,38 @@ import java.util.concurrent.Future;
  */
 public class DefaultCrawler implements Crawler {
 
-    @Named(CrawlerConfiguration.FILE_FILTERS_PROPERTY_NAME)
-    private String fileFilters;
-    @Named(CrawlerConfiguration.DEFAULT_DOWNLOAD_FILE_LOCATION_PROPERTY_NAME)
-    private String downloadFileLocation;
+    private final String fileFilters;
+    private final String downloadFileLocation;
     private final HTMLPageResponseFetcher responseFetcher;
+    private final AssetFetcher assetFetcher;
     private final ExecutorService service;
     private final PageURLParser parser;
+    private final AssetsParser assetsParser;
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicScheduler.class);
 
     /**
      * Create a new crawler.
-     *
      * @param theResponseFetcher the response fetcher to use.
      * @param theService the thread pool.
      * @param theParser the parser.
+     * @param theAssetFetcher
+     * @param theAssetsParser
      */
     @Inject
     public DefaultCrawler(HTMLPageResponseFetcher theResponseFetcher, ExecutorService theService,
-                          PageURLParser theParser) {
+                          PageURLParser theParser,
+                          AssetFetcher theAssetFetcher,
+                          AssetsParser theAssetsParser,
+                          @Named(CrawlerConfiguration.FILE_FILTERS_PROPERTY_NAME) String theFileFilters,
+                          @Named(CrawlerConfiguration.DEFAULT_DOWNLOAD_FILE_LOCATION_PROPERTY_NAME) String theDownloadFileLocation
+                          ) {
         service = theService;
         responseFetcher = theResponseFetcher;
         parser = theParser;
+        fileFilters = theFileFilters;
+        downloadFileLocation = theDownloadFileLocation;
+        assetFetcher = theAssetFetcher;
+        assetsParser = theAssetsParser;
     }
 
     /**
@@ -60,18 +73,10 @@ public class DefaultCrawler implements Crawler {
      * Get the urls.
      *
      * @param configuration how to perform the crawl
+     * @param dbUrls list of urls from the db
      * @return the result of the crawl
      */
-    public CrawlerResult getUrls(CrawlerConfiguration configuration) {
-
-        String DefaultHeaderConfig = "Host: <HOST_URL>\n" +
-                "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:82.0) Gecko/20100101 Firefox/82.0\n" +
-                "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\n" +
-                "Accept-Language: de,en-US;q=0.7,en;q=0.3\n" +
-                "Accept-Encoding: gzip, deflate, br\n" +
-                "Connection: keep-alive\n" +
-                "Upgrade-Insecure-Requests: 1";
-        DefaultHeaderConfig.replace("<HOST_URL>", configuration.getStartUrl());
+    public CrawlerResult getUrls(CrawlerConfiguration configuration, Set<Url> dbUrls) {
         final Map<String, String> requestHeaders = configuration.getRequestHeadersMap();
         final HTMLPageResponse resp =
                 verifyInput(configuration.getStartUrl(), configuration.getOnlyOnPath(), requestHeaders);
@@ -81,6 +86,7 @@ public class DefaultCrawler implements Crawler {
         final Set<CrawlerURL> allUrls = new LinkedHashSet<CrawlerURL>();
         final Set<HTMLPageResponse> verifiedUrls = new LinkedHashSet<HTMLPageResponse>();
         final Set<HTMLPageResponse> nonWorkingResponses = new LinkedHashSet<HTMLPageResponse>();
+        Set<AssetResponse> loadedAssets = new LinkedHashSet<AssetResponse>();
 
         verifiedUrls.add(resp);
 
@@ -111,9 +117,10 @@ public class DefaultCrawler implements Crawler {
             allUrls.add(resp.getPageUrl());
         }
 
-        if (configuration.isVerifyUrls())
-            verifyUrlsAndLoadFiles(allUrls, verifiedUrls, nonWorkingResponses, requestHeaders);
-            //verifyUrls(allUrls, verifiedUrls, nonWorkingResponses, requestHeaders);
+        if (configuration.isVerifyUrls()) {
+            loadedAssets = verifyUrlsAndLoadFiles(allUrls, verifiedUrls, nonWorkingResponses, requestHeaders, dbUrls);
+        }
+        //verifyUrls(allUrls, verifiedUrls, nonWorkingResponses, requestHeaders);
 
         LinkedHashSet<CrawlerURL> workingUrls = new LinkedHashSet<CrawlerURL>();
         for (HTMLPageResponse workingResponses : verifiedUrls) {
@@ -133,7 +140,7 @@ public class DefaultCrawler implements Crawler {
 
         return new CrawlerResult(configuration.getStartUrl(), configuration.isVerifyUrls()
                 ? workingUrls
-                : allUrls, verifiedUrls, nonWorkingResponses);
+                : allUrls, verifiedUrls, nonWorkingResponses, host, loadedAssets, assetsParser.getProtokolls(loadedAssets));
 
     }
 
@@ -264,11 +271,12 @@ public class DefaultCrawler implements Crawler {
      * @param allUrls all the links that has been fetched
      * @param nonWorkingUrls links that are not working
      */
-    private void verifyUrlsAndLoadFiles(Set<CrawlerURL> allUrls, Set<HTMLPageResponse> verifiedUrls,
-                            Set<HTMLPageResponse> nonWorkingUrls, Map<String, String> requestHeaders) {
+    private Set<AssetResponse> verifyUrlsAndLoadFiles(Set<CrawlerURL> allUrls, Set<HTMLPageResponse> verifiedUrls,
+                            Set<HTMLPageResponse> nonWorkingUrls, Map<String, String> requestHeaders, Set<Url> dbUrls) {
 
         Set<CrawlerURL> urlsThatNeedsVerification = new LinkedHashSet<CrawlerURL>();
-        //this.getClass().getResource()
+        Set<AssetResponse> loadedAssets = new LinkedHashSet<AssetResponse>();
+
         String filesFilter = fileFilters != null ? fileFilters : ".xml;.zip";
         String[] filters = filesFilter.split(";");
         if (filters.length > 0 ) {
@@ -283,38 +291,60 @@ public class DefaultCrawler implements Crawler {
         }
         urlsThatNeedsVerification.removeAll(verifiedUrls);
 
+        for (Url dbUrl : dbUrls) {
+            urlsThatNeedsVerification.removeIf(urlTNeed -> urlTNeed.getUrl().equals(dbUrl.getValue())
+                    && dbUrl.getLastStatusCode() == HttpStatus.SC_OK && "Asset".equals(dbUrl.getType()));
+        }
+
+
+        final Set<Callable<AssetResponse>> tasks =
+                new HashSet<>(urlsThatNeedsVerification.size());
+
         // urlsThatNeedsVerification contains only needed files urls
         // Process download of files if necessary
-        for (CrawlerURL url : urlsThatNeedsVerification){
-            HTMLPageResponse response = fetchOneFile(url, requestHeaders);
 
-            if (response.getResponseCode() == HttpStatus.SC_OK) {
-                verifiedUrls.add(response);
-            } else {
-                nonWorkingUrls.add(response);
-            }
+        for (CrawlerURL testURL : urlsThatNeedsVerification) {
+            String [] urlParts = testURL != null ? testURL.getUrl().split("/") : null;
+            String fileName = urlParts != null ? urlParts[urlParts.length - 1] : "defaultFile";
+            String downloadLocation = downloadFileLocation != null ? downloadFileLocation : "output";
+            tasks.add(new AssetResponseCallable(testURL.getUrl(), assetFetcher, requestHeaders, "", downloadLocation + "/" + fileName));
         }
-        // TODO: We can have a delta here if the exception occur
+
+        try {
+            // wait for all urls to verify
+            List<Future<AssetResponse>> responses = service.invokeAll(tasks);
+
+            for (Future<AssetResponse> future : responses) {
+                if (!future.isCancelled()) {
+                    AssetResponse response = future.get();
+                    CrawlerURL responseURL = new CrawlerURL(response.getUrl());
+                    if (response.getResponseCode() == HttpStatus.SC_OK && response.getAssetSize() >= 0) {
+                        // remove, way of catching interrupted / execution e
+                        urlsThatNeedsVerification.removeIf(urlTN -> urlTN.getUrl().equals(responseURL.getUrl()));
+                        loadedAssets.add(response);
+                        verifiedUrls.add(new HTMLPageResponse(new CrawlerURL(response.getUrl()),
+                                response.getResponseCode(), Collections.<String, String>emptyMap(),
+                                "", "", response.getAssetSize(), "", response.getFetchTime()));
+                    } else if (response.getResponseCode() == HttpStatus.SC_OK) {
+                        urlsThatNeedsVerification.remove(responseURL);
+                    } else {
+                        nonWorkingUrls.add(new HTMLPageResponse(responseURL,
+                                StatusCode.SC_SERVER_RESPONSE_UNKNOWN.getCode(),
+                                Collections.<String, String>emptyMap(), "", "", 0, "", -1));
+                    }
+                }
+            }
+
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO add some logging
+            LOGGER.error(e.getMessage());
+        } // TODO Auto-generated catch block
+
+        return loadedAssets;
     }
 
     private HTMLPageResponse fetchOnePage(CrawlerURL url, Map<String, String> requestHeaders) {
         return responseFetcher.get(url, true, requestHeaders, true);
-    }
-
-    private HTMLPageResponse fetchOneFile(CrawlerURL url, Map<String, String> requestHeaders) {
-        String [] urlParts = url != null ? url.getUrl().split("/") : null;
-        String fileName = urlParts != null ? urlParts[urlParts.length - 1] : "defaultFile";
-        String downloadLocation = downloadFileLocation != null ? downloadFileLocation : "output";
-        File outputFile = new File(downloadLocation + "/" + fileName);
-        outputFile.getParentFile().mkdirs();
-        try {
-            outputFile.createNewFile();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return  responseFetcher.saveAs(outputFile, url, true, requestHeaders);
     }
 
     private HTMLPageResponse verifyInput(String startUrl, String onlyOnPath,

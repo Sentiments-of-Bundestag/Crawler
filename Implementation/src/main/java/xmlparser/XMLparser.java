@@ -1,8 +1,5 @@
 package xmlparser;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-
 import model.Person.Fraktion;
 import model.Person.Person;
 import Utils.Utils;
@@ -10,12 +7,7 @@ import model.Sitzung.*;
 import org.w3c.dom.*;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class XMLparser {
     //base data tags
@@ -53,6 +45,10 @@ public class XMLparser {
     static final String KOMMENTAR_TAG = "kommentar";
     static final String LINE_NUMBER_TAG = "lineNumber";
     static final String ATTRIBUTE_KLASSE_TAG = "klasse";
+    static final String NAME_REDE_TAG = "name";
+    static final String SMALL_ID_TAG = "id";
+    static final String PARAGRAF_N_TAG = "N";
+    static final String REDE_TAG = "rede";
 
     private File file;
     private Document doc;
@@ -123,23 +119,20 @@ public class XMLparser {
             //get Sitzungsbeginn
             NodeList sitzungsbeginnNodeList = ((Element)sitzungsverlaufNode).getElementsByTagName(SITZUNGSBEGINN_TAG);
 
-            //get all redeAnteile
-            List<RedeTeil> redeTeile = getAllRedeTeil(sitzungsbeginnNodeList);
-
-            //get all reden von bis Zeile
-            List<Rede> reden = getAllReden();
-
-            //order redeAnteile zu reden
-
-            //add zu ablaufspunkt
+            for (int i = 0; i < sitzungsbeginnNodeList.getLength(); i++) {
+                Node sitzungsbeginnNode = sitzungsbeginnNodeList.item(i);
+                ablaufspunkte.add(getAblaufspunkt(sitzungsbeginnNode));
+            }
 
 
             NodeList tagesOrdnungsPunkteNodeList = ((Element)sitzungsverlaufNode).getElementsByTagName(TAGESORDNUNGSPUNKT_TAG);
 
             for (int i = 0; i < tagesOrdnungsPunkteNodeList.getLength(); i++) {
-            //get everything from tagesordnungspunkt
-            Ablaufspunkt ablaufspunkt = new Ablaufspunkt(AblaufspunktTyp.TAGESORDNUNGSPUNKT, "Thema", 1, null);
-            ablaufspunkte.add(ablaufspunkt); }
+                Node tagesNode = tagesOrdnungsPunkteNodeList.item(i);
+                ablaufspunkte.add(getAblaufspunkt(tagesNode));
+            }
+
+
         }
 
 
@@ -147,20 +140,136 @@ public class XMLparser {
 
     }
 
-    private List<Rede> getAllReden(){
-    return null;
+    private Ablaufspunkt getAblaufspunkt(Node node){
+
+        //get all redeAnteile
+        List<RedeTeil> redeTeile = getAllRedeTeil(node);
+
+        HashMap<Integer, String> rednerStartpoints = getRedner(node);
+
+        HashMap<Integer, String> redenIdLine = getReden(node);
+
+        List<Rede> reden = assignReden(redeTeile, rednerStartpoints, redenIdLine);
+
+        return new Ablaufspunkt(getAblaufspunktTyp(node), "Thema", 1, null);
     }
 
-    private List<RedeTeil> getAllRedeTeil(NodeList ablaufspunktNodeList){
+    private HashMap<Integer, String> getReden(Node node) {
+        HashMap<Integer, String> result = new HashMap<>();
+        if(node == null){
+            System.out.println("getReden: node is null!");
+            return result;
+        }
+        if(node.getNodeType() == Node.ELEMENT_NODE){
+            //get <reden>
+            NodeList redeNodeList = ((Element)node).getElementsByTagName(REDE_TAG);
+            for (int j = 0; j < redeNodeList.getLength(); j++) {
+                Node redeNode = redeNodeList.item(j);
+                    int lineNumber = Integer.parseInt((String) redeNode.getUserData(LINE_NUMBER_TAG));
+                    if(redeNode.getNodeType() == Node.ELEMENT_NODE){
+                        String id = ((Element)redeNode).getAttribute(SMALL_ID_TAG);
+                        result.put(lineNumber, id);
+                    }
+            }
+        }
+        return result;
+    }
+
+    private List<Rede> assignReden(List<RedeTeil> redeTeile, HashMap<Integer, String> rednerStartpoints, HashMap<Integer, String> redenIdLine) {
+        Integer[] arrStartPoints = Utils.sort(rednerStartpoints.keySet().toArray(new Integer[0]), 0, rednerStartpoints.size()-1);
+        List<Rede> reden = new ArrayList<>();
+
+        for (int i = 0; i < arrStartPoints.length; i++) {
+            List<RedeTeil> parts = new ArrayList<>();
+            List<RedeTeil> partsToRemove = new ArrayList<>();
+            for (RedeTeil redeTeil: redeTeile){
+                int lineNumber = redeTeil.getZeile_nr();
+                if (i == arrStartPoints.length - 1) {
+                    parts.add(redeTeil);
+                    partsToRemove.add(redeTeil);
+                    continue;
+                }
+                if (arrStartPoints[i] < lineNumber && arrStartPoints[i + 1] > lineNumber) {
+                    parts.add(redeTeil);
+                    partsToRemove.add(redeTeil);
+                }
+            }
+            redeTeile.removeAll(partsToRemove);
+            reden.add(new Rede(null, arrStartPoints[i], parts, 0));
+        }
+        return reden;
+    }
+
+
+    private AblaufspunktTyp getAblaufspunktTyp(Node node){
+        switch (node.getNodeName()){
+            case TAGESORDNUNGSPUNKT_TAG:
+                return AblaufspunktTyp.TAGESORDNUNGSPUNKT;
+
+            case SITZUNGSBEGINN_TAG:
+                return AblaufspunktTyp.SITZUNGSBEGINN;
+
+            default:
+                return AblaufspunktTyp.UNKNOWN;
+        }
+   }
+
+    private HashMap<Integer, String> getRedner(Node node){
+        HashMap<Integer, String> result = new HashMap<>();
+        if(node == null){
+            System.out.println("getRedner: node is null!");
+            return result;
+        }
+            if(node.getNodeType() == Node.ELEMENT_NODE){
+                //get <name>
+                NodeList nameNodeList = ((Element)node).getElementsByTagName(NAME_REDE_TAG);
+                for (int j = 0; j < nameNodeList.getLength(); j++) {
+                    Node nameNode = nameNodeList.item(j);
+                    Node parentNode = nameNode.getParentNode();
+                    if(!parentNode.getNodeName().equals(REDNER_TAG)){
+                        int lineNumber = Integer.parseInt((String) nameNode.getUserData(LINE_NUMBER_TAG));
+                        String name = nameNode.getTextContent();
+                        result.put(lineNumber, name);
+                    }
+                }
+                //get <p klasse="redner" or <p klasse="N">
+                NodeList paragraphNodeList = ((Element)node).getElementsByTagName(PARAGRAF_TAG);
+                for (int j = 0; j < paragraphNodeList.getLength(); j++) {
+                    Node paragraphNode = paragraphNodeList.item(j);
+                    if(paragraphNode.getNodeType() == Node.ELEMENT_NODE){
+                        //<p> klasse = "redner"
+                        if(checkAttribute((Element) paragraphNode, ATTRIBUTE_KLASSE_TAG, REDNER_TAG)){
+                            int lineNumber = Integer.parseInt((String) paragraphNode.getUserData(LINE_NUMBER_TAG));
+                            Node rednerNode = ((Element) paragraphNode).getElementsByTagName(REDNER_TAG).item(0);
+                            if(rednerNode.getNodeType() == Node.ELEMENT_NODE){
+                                String id = ((Element)rednerNode).getAttribute(SMALL_ID_TAG);
+                                result.put(lineNumber, id);
+                            }
+                            //<p> klasse = "N"
+                        }else if(checkAttribute((Element) paragraphNode, ATTRIBUTE_KLASSE_TAG, PARAGRAF_N_TAG)){
+                            int lineNumber = Integer.parseInt((String) paragraphNode.getUserData(LINE_NUMBER_TAG));
+                            String content = paragraphNode.getTextContent();
+                            result.put(lineNumber, content);
+                        }
+                    }
+                }
+
+            }
+
+
+        return result;
+    }
+
+
+    private List<RedeTeil> getAllRedeTeil(Node node){
         List<RedeTeil> redeTeile = new ArrayList<>();
-        if(ablaufspunktNodeList == null || ablaufspunktNodeList.getLength() == 0){
+        if(node == null){
             return redeTeile;
         }
-        for (int i = 0; i < ablaufspunktNodeList.getLength(); i++) {
-            Node ablaufspunktNode = ablaufspunktNodeList.item(i);
-            if(ablaufspunktNode.getNodeType() == Node.ELEMENT_NODE){
+
+            if(node.getNodeType() == Node.ELEMENT_NODE){
                 //get all paragraphs <p>
-                NodeList paragraphNodeList = ((Element)ablaufspunktNode).getElementsByTagName(PARAGRAF_TAG);
+                NodeList paragraphNodeList = ((Element)node).getElementsByTagName(PARAGRAF_TAG);
 
                 for (int j = 0; j < paragraphNodeList.getLength(); j++) {
                     RedeTeil redeTeil = getRedeTeil(paragraphNodeList.item(j));
@@ -169,7 +278,7 @@ public class XMLparser {
                     }
                 }
 
-                NodeList kommentarNodeList = ((Element)ablaufspunktNode).getElementsByTagName(KOMMENTAR_TAG);
+                NodeList kommentarNodeList = ((Element)node).getElementsByTagName(KOMMENTAR_TAG);
 
                 for (int k = 0; k < kommentarNodeList.getLength(); k++) {
                     RedeTeil redeTeil = getRedeTeil(kommentarNodeList.item(k));
@@ -179,18 +288,32 @@ public class XMLparser {
                 }
 
             }
-        }
+
         return redeTeile;
+    }
+
+    private boolean checkAttribute(Element element, String attributeName, String className){
+        String redeTeilAttribute = element.getAttribute(attributeName);
+        if(redeTeilAttribute == null){
+            System.out.println("checkAttribute: attributeName: " + attributeName + "doesn't exist!");
+            return false;
+        }
+        return redeTeilAttribute.equals(className);
     }
 
     private RedeTeil getRedeTeil(Node redeTeilNode) {
         if(redeTeilNode == null){
             return null;
         }
-        String redeTeilAttribute = ((Element)redeTeilNode).getAttribute(ATTRIBUTE_KLASSE_TAG);
-        if(redeTeilAttribute.equals(REDNER_TAG)){
-            return null;
+        if(redeTeilNode.getNodeType() == Node.ELEMENT_NODE){
+            if(checkAttribute((Element) redeTeilNode, ATTRIBUTE_KLASSE_TAG ,REDNER_TAG)){
+                return null;
+            }
+            if(checkAttribute((Element) redeTeilNode, ATTRIBUTE_KLASSE_TAG ,PARAGRAF_N_TAG)){
+                return null;
+            }
         }
+
             RedeTeilTyp redeTeilTyp;
             if(redeTeilNode.getNodeName().equals(PARAGRAF_TAG)){
                 redeTeilTyp = RedeTeilTyp.PARAGRAF;

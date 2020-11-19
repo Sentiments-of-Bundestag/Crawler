@@ -1,5 +1,5 @@
 package model.Sitzung;
 
 public enum AblaufspunktTyp {
-    SITZUNGSBEGINN, TAGESORDNUNGSPUNKT
+    SITZUNGSBEGINN, TAGESORDNUNGSPUNKT, UNKNOWN
 }

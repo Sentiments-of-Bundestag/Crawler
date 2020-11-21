@@ -11,6 +11,8 @@ import crawler.core.HTMLPageResponse;
 import crawler.core.HTMLPageResponseFetcher;
 import crawler.util.StatusCode;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -27,6 +29,7 @@ import java.util.Map;
  */
 public class HTTPClientResponseFetcher implements HTMLPageResponseFetcher {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JsonClientRequestProcessor.class);
     private final WebClient webClient;
 
     /**
@@ -43,7 +46,7 @@ public class HTTPClientResponseFetcher implements HTMLPageResponseFetcher {
         webClient.close();
     }
 
-    public HTMLPageResponse get(CrawlerURL url, boolean getPage, Map<String, String> requestHeaders, boolean followRedirectsToNewDomain) {
+    public HTMLPageResponse get(CrawlerURL url, boolean fetchBody, Map<String, String> requestHeaders, boolean followRedirectsToNewDomain) {
 
         if (url.isWrongSyntax()) {
             return new HTMLPageResponse(url, StatusCode.SC_MALFORMED_URI.getCode(),
@@ -65,20 +68,20 @@ public class HTTPClientResponseFetcher implements HTMLPageResponseFetcher {
 
             final long fetchTime = System.currentTimeMillis() - start;
 
-            // this is a hack to minimize the amount of memory used
+            // this is a hack tio mnimize the amount of memory used
             // should make this configurable maybe
             // don't fetch headers for request that don't fetch the body and
             // response isn't 200
             // these headers will not be shown in the results
             final Map<String, String> headersAndValues =
-                    getPage || !StatusCode.isResponseCodeOk(webResp.getStatusCode())
+                    fetchBody || !StatusCode.isResponseCodeOk(webResp.getStatusCode())
                             ? getHeaders(webResp)
                             : Collections.<String, String>emptyMap();
 
             final String encoding =
                     resp.getXmlEncoding() != null ? resp.getXmlEncoding() : "";
 
-            final String body = getPage ? resp.asXml() : "";
+            final String body = fetchBody ? resp.asXml() : "";
             final long size = webResp.getContentLength();
             // TODO add log when null
             final String type =
@@ -88,11 +91,11 @@ public class HTTPClientResponseFetcher implements HTMLPageResponseFetcher {
             return new HTMLPageResponse(url, sc, headersAndValues, body, encoding, size, type, fetchTime);
 
         } catch (SocketTimeoutException | ConnectTimeoutException e) {
-            System.err.println(e);
+            LOGGER.error(e.getMessage());
             return new HTMLPageResponse(url, StatusCode.SC_SERVER_RESPONSE_TIMEOUT.getCode(),
                     Collections.<String, String>emptyMap(), "", "", 0, "", System.currentTimeMillis() - start);
         } catch (IOException e) {
-            System.err.println(e);
+            LOGGER.error(e.getMessage());
             return new HTMLPageResponse(url, StatusCode.SC_SERVER_RESPONSE_UNKNOWN.getCode(),
                     Collections.<String, String>emptyMap(), "", "", 0, "", -1);
         } finally {

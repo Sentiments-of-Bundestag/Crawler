@@ -4,6 +4,7 @@ import crawler.util.HeaderUtil;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Configuration for a crawl.
@@ -47,6 +48,11 @@ public final class CrawlerConfiguration {
     public final static String DEFAULT_DOWNLOAD_FILE_LOCATION_PROPERTY_NAME = "crawler.download.location";
 
     /**
+     * System property for stammdaten filename.
+     */
+    public final static String DEFAULT_STAMMDATEN_FILENAME = "crawler.default.stammdaten.filename";
+
+    /**
      * The default crawl level if no is supplied.
      */
     public static final int DEFAULT_CRAWL_LEVEL = 1;
@@ -62,6 +68,8 @@ public final class CrawlerConfiguration {
     private String requestHeaders = "";
     private String fileFilters = "";
     private String downloadFileLocation = "";
+
+    private String stammdatenFilename = "";
     private String startUrl = "";
     private Map<String, String> requestHeadersMap = Collections.emptyMap();
 
@@ -112,6 +120,9 @@ public final class CrawlerConfiguration {
         return verifyUrls;
     }
 
+    public String getStammdatenFilename() {
+        return stammdatenFilename;
+    }
     private CrawlerConfiguration copy() {
         final CrawlerConfiguration conf = new CrawlerConfiguration();
         conf.setMaxLevels(getMaxLevels());
@@ -122,6 +133,7 @@ public final class CrawlerConfiguration {
         conf.setFileFilters(getFileFilters());
         conf.setRequestHeaders(getRequestHeaders());
         conf.setDownloadFileLocation(getDownloadFileLocation());
+        conf.setStammdatenFilename(getStammdatenFilename());
         return conf;
     }
 
@@ -158,42 +170,47 @@ public final class CrawlerConfiguration {
         this.verifyUrls = verifyUrls;
     }
 
+    public void setStammdatenFilename(String stammdatenFilename) {
+        this.stammdatenFilename = stammdatenFilename;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CrawlerConfiguration)) return false;
+        CrawlerConfiguration that = (CrawlerConfiguration) o;
+        return maxLevels == that.maxLevels &&
+                verifyUrls == that.verifyUrls &&
+                notOnPath.equals(that.notOnPath) &&
+                onlyOnPath.equals(that.onlyOnPath) &&
+                requestHeaders.equals(that.requestHeaders) &&
+                fileFilters.equals(that.fileFilters) &&
+                downloadFileLocation.equals(that.downloadFileLocation) &&
+                stammdatenFilename.equals(that.stammdatenFilename) &&
+                startUrl.equals(that.startUrl) &&
+                requestHeadersMap.equals(that.requestHeadersMap);
+    }
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + maxLevels;
-        result = prime * result + ((notOnPath == null) ? 0 : notOnPath.hashCode());
-        result = prime * result + ((onlyOnPath == null) ? 0 : onlyOnPath.hashCode());
-        result = prime * result + ((startUrl == null) ? 0 : startUrl.hashCode());
-        result = prime * result + ((fileFilters == null) ? 0 : fileFilters.hashCode());
-        result = prime * result + ((downloadFileLocation == null) ? 0 : downloadFileLocation.hashCode());
-        result = prime * result + (verifyUrls ? 1231 : 1237);
-        return result;
+        return Objects.hash(maxLevels, notOnPath, onlyOnPath, requestHeaders, fileFilters, downloadFileLocation, stammdatenFilename, startUrl, requestHeadersMap, verifyUrls);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        CrawlerConfiguration other = (CrawlerConfiguration) obj;
-        if (maxLevels != other.maxLevels) return false;
-        if (notOnPath == null) {
-            if (other.notOnPath != null) return false;
-        } else if (!notOnPath.equals(other.notOnPath)) return false;
-        if (onlyOnPath == null) {
-            if (other.onlyOnPath != null) return false;
-        } else if (!onlyOnPath.equals(other.onlyOnPath)) return false;
-        if (startUrl == null) {
-            if (other.startUrl != null) return false;
-        } else if (!startUrl.equals(other.startUrl)) return false;
-        if (fileFilters != other.fileFilters) return false;
-        if (downloadFileLocation != other.downloadFileLocation) return false;
-        if (verifyUrls != other.verifyUrls) return false;
-        return true;
+    public String toString() {
+        return "CrawlerConfiguration{" +
+                "maxLevels=" + maxLevels +
+                ", notOnPath='" + notOnPath + '\'' +
+                ", onlyOnPath='" + onlyOnPath + '\'' +
+                ", requestHeaders='" + requestHeaders + '\'' +
+                ", fileFilters='" + fileFilters + '\'' +
+                ", downloadFileLocation='" + downloadFileLocation + '\'' +
+                ", stammdatenFilename='" + stammdatenFilename + '\'' +
+                ", startUrl='" + startUrl + '\'' +
+                ", requestHeadersMap=" + requestHeadersMap +
+                ", verifyUrls=" + verifyUrls +
+                '}';
     }
-
 
 
     public static class Builder {
@@ -242,6 +259,11 @@ public final class CrawlerConfiguration {
 
         public Builder setRequestHeaders(String requestHeaders) {
             configuration.setRequestHeaders(requestHeaders);
+            return this;
+        }
+
+        public Builder setStammdatenFilename(String stammdatenFilename) {
+            configuration.setStammdatenFilename(stammdatenFilename);
             return this;
         }
     }

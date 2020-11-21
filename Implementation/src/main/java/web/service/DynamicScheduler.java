@@ -2,10 +2,14 @@ package web.service;
 
 
 import crawler.core.CrawlerResult;
+import crawler.core.HTMLPageResponse;
 import crawler.core.assets.AssetResponse;
 import crawler.run.CrawlToFile;
 import models.Crawler.Configuration;
+import models.Crawler.Notification;
 import models.Crawler.Url;
+import models.Person.Person;
+import models.Protokoll;
 import org.apache.commons.cli.ParseException;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -14,9 +18,11 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 import repositories.Crawler.ConfigurationRepository;
 import repositories.Crawler.UrlRepository;
+import repositories.Person.PersonRepository;
 import repositories.ProtokollRepository;
 
 import javax.annotation.PostConstruct;
@@ -28,20 +34,24 @@ import java.util.concurrent.ScheduledFuture;
 public class DynamicScheduler implements SchedulingConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicScheduler.class);
+    private static final int DEFAULT_SLEEP_RANGE = 14400; // correspond to 4 hours
+    private Random random = new Random();
 
     ScheduledTaskRegistrar scheduledTaskRegistrar;
 
     private final ConfigurationRepository configurationRepository;
     private final UrlRepository urlRepository;
     private final ProtokollRepository protokollRepository;
+    private final PersonRepository personRepository;
 
     private ScheduledFuture future;
     private Map<ScheduledFuture, Boolean> futureMap;
 
-    public DynamicScheduler(ConfigurationRepository configurationRepository, UrlRepository urlRepository, ProtokollRepository protokollRepository) {
+    public DynamicScheduler(ConfigurationRepository configurationRepository, UrlRepository urlRepository, ProtokollRepository protokollRepository, PersonRepository personRepository) {
         this.configurationRepository = configurationRepository;
         this.urlRepository = urlRepository;
         this.protokollRepository = protokollRepository;
+        this.personRepository = personRepository;
     }
 
     @PostConstruct
@@ -50,11 +60,16 @@ public class DynamicScheduler implements SchedulingConfigurer {
         Set<Configuration> configs = new LinkedHashSet<Configuration>();
         Optional<Configuration> dbConfig = configurationRepository.findById("next_exec_time");
         if (dbConfig.isEmpty()) {
-            configs.add(new Configuration("next_exec_time", "4"));
+            configs.add(new Configuration("next_exec_time", "0 0 23 ? * MON-FRI"));
         }
         dbConfig = configurationRepository.findById("seed_url");
         if (dbConfig.isEmpty()) {
             configs.add(new Configuration("seed_url", "https://www.bundestag.de/services/opendata"));
+        }
+
+        dbConfig = configurationRepository.findById("notification_server_url");
+        if (dbConfig.isEmpty()) {
+            configs.add(new Configuration("notification_server_url", "http://141.45.146.162:9001/data"));
         }
 
         configurationRepository.saveAll(configs);
@@ -99,25 +114,6 @@ public class DynamicScheduler implements SchedulingConfigurer {
                 return nextExecutionTime.getTime();
             });
         }
-
-        // Next execution time is taken from DB, so if the value in DB changes, next execution time will change too.
-        /*if (future == null || (future.isCancelled() && futureMap.get(future))) {
-            future = taskRegistrar.getScheduler().schedule(() -> scheduledDatabase(repo.findById("next_exec_time").get().getConfigValue()), t -> {
-                Calendar nextExecutionTime = new GregorianCalendar();
-                Date lastActualExecutionTime = t.lastActualExecutionTime();
-                nextExecutionTime.setTime(lastActualExecutionTime != null ? lastActualExecutionTime : new Date());
-                nextExecutionTime.add(Calendar.SECOND, Integer.parseInt(repo.findById("next_exec_time").get().getConfigValue()));
-                return nextExecutionTime.getTime();
-            });
-        }*/
-
-        // or cron way, you can also get the expression from DB or somewhere else just like we did above.
-        /*if (future == null || (future.isCancelled() && futureMap.get(future))) {
-            future = taskRegistrar.getScheduler().schedule(() -> scheduleCron(repo.findById("next_exec_time").get().getConfigValue()), t -> {
-                CronTrigger crontrigger = new CronTrigger(repo.findById("next_exec_time").get().getConfigValue());
-                return crontrigger.nextExecutionTime(t);
-            });
-        }*/
     }
 
     // Get scheduled Task by id
@@ -151,7 +147,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
     }
 
     // startDate and endDate are only calendar date and time indicates at which hour/minute of the day.
-    public int scheduleAt(LocalDate startDate, LocalDate endDate, LocalTime time) {
+    public int scheduleAt(String seedUrl, LocalDate startDate, LocalDate endDate, LocalTime time) {
         LocalDate now = LocalDate.now();
         if (now.isBefore(endDate)) {
             if (now.isBefore(startDate)) {
@@ -161,26 +157,45 @@ public class DynamicScheduler implements SchedulingConfigurer {
             ZoneId zone = ZoneId.of("Europe/Berlin");
             ZoneOffset zoneOffSet = zone.getRules().getOffset(current);
             Instant nextRunTime = current.toInstant(zoneOffSet);
-            future = poolScheduler().schedule(() -> scheduleSingleCrawlJob(nextRunTime), nextRunTime);
+            future = poolScheduler().schedule(() -> scheduleSingleCrawlJob(seedUrl), nextRunTime);
             futureMap.put(future, true);
         }
         return futureMap.size() - 1;
     }
 
-    // Default test Task
-    public int scheduleDefaultTask() {
-        return this.scheduleAt(LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), LocalTime.now().plusSeconds(5));
+    // Default cron task
+    public int scheduleDefaultCron() {
+        // Fire at 11pm every Monday, Tuesday, Wednesday, Thursday and Friday: 0 0 23 ? * MON-FRI
+        // This config will be loaded from db and can also be configured there: next_exec_time
+        Optional<Configuration> dbConfig = configurationRepository.findById("next_exec_time");
+        if (dbConfig.isPresent()) {
+            future = poolScheduler().schedule(() -> scheduleCron(dbConfig.get().getConfigValue()), t -> {
+                CronTrigger crontrigger = new CronTrigger(dbConfig.get().getConfigValue());
+                return crontrigger.nextExecutionTime(t);
+            });
+            futureMap.put(future, true);
+            return futureMap.size() - 1;
+        }
+
+        return -1;
     }
 
-    public void scheduleSingleCrawlJob(Instant nextRunTime) {
+    // Default single Task
+    public int scheduleDefaultTask(String seedUrl, int frequency) {
+        return this.scheduleAt(seedUrl, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1), LocalTime.now().plusSeconds(frequency));
+    }
+
+    public void scheduleSingleCrawlJob(String seedUrl) {
         // This is your real code to be scheduled
         LOGGER.info("scheduleSingleCrawlJob: A single CrawlJob have been scheduled by user & will start in 5 seconds");
+
         Optional<Configuration> seedUrlConfig = configurationRepository.findById("seed_url");
-        String[] args = {"-u", seedUrlConfig.isEmpty() ? "https://www.bundestag.de/services/opendata" : seedUrlConfig.get().getConfigValue()};
+        String[] args = {"-u", "default".equals(seedUrl) ? seedUrlConfig.get().getConfigValue() : seedUrl};
         try {
             Optional<Url> startUrl = urlRepository.findById(args[1]);
             final CrawlToFile crawl = new CrawlToFile(args);
-            CrawlerResult crawlerResult = crawl.crawl(new LinkedHashSet<>(urlRepository.findAll()));
+            Set<Person> dbStammdaten = new LinkedHashSet<>(personRepository.findAll());
+            CrawlerResult crawlerResult = crawl.crawl(new LinkedHashSet<>(urlRepository.findAll()), dbStammdaten, true);
             if (crawlerResult != null) {
                 Set<Url> dbUrls = new LinkedHashSet<Url>();
                 for (AssetResponse assetResponse : crawlerResult.getLoadedAssets()) {
@@ -189,14 +204,51 @@ public class DynamicScheduler implements SchedulingConfigurer {
 
                 if (startUrl.isEmpty()) {
                     dbUrls.add(new Url(crawlerResult.getStartPointHost(), crawlerResult.getStartPoint(), new Date(System.currentTimeMillis()), HttpStatus.SC_OK, "", -1, "Page"));
+                } else {
+                    Url existingStartUrl = startUrl.get();
+                    existingStartUrl.setLastRequestTime(new Date(System.currentTimeMillis()));
+                    urlRepository.save(existingStartUrl);
                 }
 
                 urlRepository.saveAll(dbUrls);
 
-                if (startUrl.isPresent()) {
-                    Url existingStartUrl = startUrl.get();
-                    existingStartUrl.setLastRequestTime(new Date(System.currentTimeMillis()));
-                    urlRepository.save(existingStartUrl);
+                // check if dbStammdaten is different from the ones provided by loaderStammdaten crawlerResult
+                Set<Person> loadedStammdaten = crawlerResult.getLoaderStammdaten();
+                if (dbStammdaten.size() != loadedStammdaten.size() || !dbStammdaten.equals(loadedStammdaten)) {
+                    // add & update person if already existing
+                    personRepository.saveAll(loadedStammdaten);
+                }
+
+                // Save downloaded and parsed protokolls to DB
+                if (crawlerResult.getLoadedProtokolls() != null) {
+                    protokollRepository.saveAll(crawlerResult.getLoadedProtokolls());
+                }
+
+                // Now send notification for all Protokolls in the db, where notified is not true
+                Optional<Configuration> notificationUrlConfig = configurationRepository.findById("notification_server_url");
+                String notificationUrl = notificationUrlConfig.get().getConfigValue();
+                Set<Integer> protokollIds = new LinkedHashSet<>();
+                Set<Protokoll> protokolls = new LinkedHashSet<>(protokollRepository.findAll());
+                for (Protokoll protokoll : protokolls) {
+                    if (!protokoll.getNotified()) {
+                        protokollIds.add(protokoll.getId());
+                    }
+                }
+                if (protokollIds.size() > 0) {
+                    Notification notification = new Notification(protokollIds);
+
+                    // Try to notify
+                    HTMLPageResponse notificationResponse = crawl.SendNotification(notificationUrl, notification);
+
+                    if (notificationResponse.getResponseCode() == HttpStatus.SC_OK) {
+                        // Successful notified
+                        for (Protokoll protokoll : protokolls) {
+                            protokoll.setNotified(true);
+                        }
+                        protokollRepository.saveAll(protokolls);
+                    } else {
+                        // Setup retry process or wait for the next crawl
+                    }
                 }
             }
         } catch (IllegalArgumentException | ParseException e) {
@@ -220,8 +272,21 @@ public class DynamicScheduler implements SchedulingConfigurer {
 
     // Only reason this method gets the cron as parameter is for debug purposes.
     public void scheduleCron(String cron) {
-        LOGGER.info("scheduleCron: Next execution time of this taken from cron expression -> {}", cron);
+
+        // Setup sleep time randomly
+        int randomSleep = random.nextInt(DEFAULT_SLEEP_RANGE + 1) + 1;
+        try {
+            Thread.sleep(randomSleep * 1000);
+
+            // After the sleep run crawl-task
+            scheduleSingleCrawlJob("default");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        LOGGER.info("scheduleCron: Next execution time of this taken from cron expression -> {}, RandomSleep in minutes: {}, CurrentTime: {}", cron, randomSleep / 60, new Date());
     }
+
+
 
     // This is only to show that next execution time can be changed on the go with SchedulingConfigurer.
     // This can not be done via @Scheduled annotation.

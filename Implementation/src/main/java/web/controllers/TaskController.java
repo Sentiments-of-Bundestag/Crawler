@@ -3,6 +3,7 @@ package web.controllers;
 import models.Crawler.ControllerRequest;
 import models.Crawler.ControllerResponse;
 import models.Crawler.PlanedTask;
+import models.Crawler.Url;
 import org.springframework.web.bind.annotation.*;
 import web.service.DynamicScheduler;
 
@@ -12,11 +13,11 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 
 @RestController
-public class CrawlController {
+public class TaskController {
 
     DynamicScheduler TaskScheduler;
 
-    public CrawlController (DynamicScheduler TaskScheduler){
+    public TaskController(DynamicScheduler TaskScheduler){
         this.TaskScheduler = TaskScheduler;
     }
 
@@ -37,11 +38,10 @@ public class CrawlController {
         }
         else {
             controllerResponse.setTitle("List of tasks");
-            String ResultText = "id: \t \t status: \t \t task \n";
             int counter = 0;
             Set<PlanedTask> planedTasks = new LinkedHashSet<>();
             for (Map.Entry<ScheduledFuture, Boolean> entry : futureMap.entrySet()) {
-                planedTasks.add(new PlanedTask(counter, "Task Nr. " + counter, null, "ScheduledTask", entry.getKey().toString(), null));
+                planedTasks.add(new PlanedTask(counter, "Task Nr. " + counter, null, "ScheduledTask, Planed Status: " + entry.getValue().toString(), String.valueOf(entry.getKey()), null));
                 counter++;
             }
             controllerResponse.setBody(planedTasks);
@@ -51,24 +51,61 @@ public class CrawlController {
 
     @PostMapping(value = "/task", consumes = "application/json", produces = "application/json")
     public ControllerResponse addTask(@RequestBody ControllerRequest request){
-        int taskId = TaskScheduler.scheduleWithFrequency(request.getFrequency());
+        int taskId = TaskScheduler.scheduleDefaultTask(request.getUrl(), request.getFrequency());
+
         ControllerResponse controllerResponse = new ControllerResponse();
-        controllerResponse.setTitle("New task created!");
-        Set<PlanedTask> planedTasks = new LinkedHashSet<>();
-        planedTasks.add(new PlanedTask(taskId, "Task Nr. " + taskId, null, "ScheduledTask", "Frequency = " + request.getFrequency(), null));
-        controllerResponse.setBody(planedTasks);
+        Map.Entry<ScheduledFuture, Boolean> futureTask = TaskScheduler.getScheduledTaskById(taskId);
+        if (futureTask == null) {
+            controllerResponse.setTitle("No task with id (" + taskId + ") founded!");
+        } else {
+            controllerResponse.setTitle("Default single time Task have been scheduled!\n Fixed next time execution task " + request.getFrequency() + " sec");
+            Set<PlanedTask> planedTasks = new LinkedHashSet<>();
+
+            planedTasks.add(new PlanedTask(taskId, "Task Nr. " + taskId, new Url("https://www.bundestag.de/services/opendata"), "ScheduledTask, Status: " + futureTask.getValue().toString(), String.valueOf(futureTask.getKey()), null));
+            controllerResponse.setBody(planedTasks);
+        }
+        return  controllerResponse;
+    }
+
+    @PostMapping(value = "/task/cron", produces = "application/json")
+    public ControllerResponse addDefaultCronTask() {
+        int taskId = TaskScheduler.scheduleDefaultCron();
+        ControllerResponse controllerResponse = new ControllerResponse();
+
+        if (taskId == -1) {
+            controllerResponse.setTitle("Default Cron Task could not been scheduled!");
+        } else {
+            Map.Entry<ScheduledFuture, Boolean> futureTask = TaskScheduler.getScheduledTaskById(taskId);
+            if (futureTask == null) {
+                controllerResponse.setTitle("No task with id (" + taskId + ") founded!");
+            } else {
+                controllerResponse.setTitle("Default Task have been successful scheduled!\n The task will be fired at 11pm every Monday, Tuesday, Wednesday, Thursday and Friday!");
+                Set<PlanedTask> planedTasks = new LinkedHashSet<>();
+
+                planedTasks.add(new PlanedTask(taskId, "Task Nr. " + taskId, new Url("https://www.bundestag.de/services/opendata"), "ScheduledTask, Status: " + futureTask.getValue().toString(), String.valueOf(futureTask.getKey()), null));
+                controllerResponse.setBody(planedTasks);
+            }
+        }
+
         return  controllerResponse;
     }
 
     @PostMapping(value = "/task/default", produces = "application/json")
     public ControllerResponse addDefaultTask() {
-        int taskId = TaskScheduler.scheduleDefaultTask();
+        int taskId = TaskScheduler.scheduleDefaultTask("default", 5);
 
         ControllerResponse controllerResponse = new ControllerResponse();
-        controllerResponse.setTitle("Default Task have been scheduled!");
-        Set<PlanedTask> planedTasks = new LinkedHashSet<>();
-        planedTasks.add(new PlanedTask(taskId, "Task Nr. " + taskId, null, "ScheduledTask", " One time execution task, will start in 5 sec.", null));
-        controllerResponse.setBody(planedTasks);
+        controllerResponse.setTitle("Default Task have been scheduled!\n One time execution task, will start in 5 sec");
+        Map.Entry<ScheduledFuture, Boolean> futureTask = TaskScheduler.getScheduledTaskById(taskId);
+        if (futureTask == null) {
+            controllerResponse.setTitle("No task with id (" + taskId + ") founded!");
+        } else {
+            controllerResponse.setTitle("Default Task have been successful scheduled!\n The task will be fired at 11pm every Monday, Tuesday, Wednesday, Thursday and Friday!");
+            Set<PlanedTask> planedTasks = new LinkedHashSet<>();
+
+            planedTasks.add(new PlanedTask(taskId, "Task Nr. " + taskId, new Url("https://www.bundestag.de/services/opendata"), "ScheduledTask - Crawl, Status: " + futureTask.getValue().toString(), String.valueOf(futureTask.getKey()), null));
+            controllerResponse.setBody(planedTasks);
+        }
         return  controllerResponse;
     }
 
@@ -82,7 +119,7 @@ public class CrawlController {
             controllerResponse.setTitle("One task founded!");
             Set<PlanedTask> planedTasks = new LinkedHashSet<>();
 
-            planedTasks.add(new PlanedTask(id, "Task Nr. " + id, null, "ScheduledTask, Status: " + futureTask.getValue().toString(), futureTask.getKey().toString(), null));
+            planedTasks.add(new PlanedTask(id, "Task Nr. " + id, null, "ScheduledTask, Status: " + futureTask.getValue().toString(), String.valueOf(futureTask.getKey()), null));
             controllerResponse.setBody(planedTasks);
         }
 

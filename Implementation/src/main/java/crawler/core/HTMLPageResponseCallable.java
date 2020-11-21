@@ -35,7 +35,6 @@ public class HTMLPageResponseCallable implements Callable<HTMLPageResponse> {
         fetchPage = fetchTheBody;
         requestHeaders = theRequestHeaders;
         this.followRedirectsToNewDomain = followRedirectsToNewDomain;
-
     }
 
     /**
@@ -51,7 +50,12 @@ public class HTMLPageResponseCallable implements Callable<HTMLPageResponse> {
 
     @Override
     public String toString() {
-        // TODO add request headers
-        return this.getClass().getSimpleName() + " url:" + url;
+        return "HTMLPageResponseCallable{" +
+                "fetcher=" + fetcher +
+                ", url=" + url +
+                ", fetchPage=" + fetchPage +
+                ", followRedirectsToNewDomain=" + followRedirectsToNewDomain +
+                ", requestHeaders=" + requestHeaders +
+                '}';
     }
 }

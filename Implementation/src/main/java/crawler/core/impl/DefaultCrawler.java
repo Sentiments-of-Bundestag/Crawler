@@ -1,5 +1,6 @@
 package crawler.core.impl;
 
+import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import crawler.core.*;
@@ -9,6 +10,7 @@ import crawler.core.assets.AssetResponseCallable;
 import crawler.core.assets.AssetsParser;
 import crawler.util.StatusCode;
 import models.Crawler.Url;
+import models.Person.Person;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,36 +31,43 @@ public class DefaultCrawler implements Crawler {
 
     private final String fileFilters;
     private final String downloadFileLocation;
+    private final String stammdatenFilename;
     private final HTMLPageResponseFetcher responseFetcher;
     private final AssetFetcher assetFetcher;
     private final ExecutorService service;
     private final PageURLParser parser;
     private final AssetsParser assetsParser;
+    private final JsonRequestProcessor requestProcessor;
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicScheduler.class);
 
     /**
      * Create a new crawler.
-     * @param theResponseFetcher the response fetcher to use.
-     * @param theService the thread pool.
-     * @param theParser the parser.
-     * @param theAssetFetcher
-     * @param theAssetsParser
+     * @param responseFetcher the response fetcher to use.
+     * @param service the thread pool.
+     * @param parser the parser.
+     * @param assetFetcher the asset fetcher to use
+     * @param assetsParser the asset parser to use
+     * @param requestProcessor the json request processor to use
+     * @param stammdatenFilename the filename of the default stammdaten file
      */
     @Inject
-    public DefaultCrawler(HTMLPageResponseFetcher theResponseFetcher, ExecutorService theService,
-                          PageURLParser theParser,
-                          AssetFetcher theAssetFetcher,
-                          AssetsParser theAssetsParser,
-                          @Named(CrawlerConfiguration.FILE_FILTERS_PROPERTY_NAME) String theFileFilters,
-                          @Named(CrawlerConfiguration.DEFAULT_DOWNLOAD_FILE_LOCATION_PROPERTY_NAME) String theDownloadFileLocation
-                          ) {
-        service = theService;
-        responseFetcher = theResponseFetcher;
-        parser = theParser;
-        fileFilters = theFileFilters;
-        downloadFileLocation = theDownloadFileLocation;
-        assetFetcher = theAssetFetcher;
-        assetsParser = theAssetsParser;
+    public DefaultCrawler(HTMLPageResponseFetcher responseFetcher, ExecutorService service,
+                          PageURLParser parser,
+                          AssetFetcher assetFetcher,
+                          AssetsParser assetsParser,
+                          JsonRequestProcessor requestProcessor,
+                          @Named(CrawlerConfiguration.FILE_FILTERS_PROPERTY_NAME) String fileFilters,
+                          @Named(CrawlerConfiguration.DEFAULT_DOWNLOAD_FILE_LOCATION_PROPERTY_NAME) String downloadFileLocation,
+                          @Named(CrawlerConfiguration.DEFAULT_STAMMDATEN_FILENAME) String stammdatenFilename) {
+        this.service = service;
+        this.responseFetcher = responseFetcher;
+        this.parser = parser;
+        this.fileFilters = fileFilters;
+        this.downloadFileLocation = downloadFileLocation;
+        this.assetFetcher = assetFetcher;
+        this.assetsParser = assetsParser;
+        this.requestProcessor = requestProcessor;
+        this.stammdatenFilename = stammdatenFilename;
     }
 
     /**
@@ -67,6 +76,8 @@ public class DefaultCrawler implements Crawler {
     public void shutdown() {
         if (service != null) service.shutdown();
         if (responseFetcher != null) responseFetcher.shutdown();
+        if (assetFetcher != null) assetFetcher.shutdown();
+        if (requestProcessor != null) requestProcessor.shutdown();
     }
 
     /**
@@ -76,13 +87,13 @@ public class DefaultCrawler implements Crawler {
      * @param dbUrls list of urls from the db
      * @return the result of the crawl
      */
-    public CrawlerResult getUrls(CrawlerConfiguration configuration, Set<Url> dbUrls) {
+    public CrawlerResult getUrls(CrawlerConfiguration configuration, Set<Url> dbUrls, Set<Person> dbStammdaten, boolean deleteAfterParsing) {
         final Map<String, String> requestHeaders = configuration.getRequestHeadersMap();
         final HTMLPageResponse resp =
                 verifyInput(configuration.getStartUrl(), configuration.getOnlyOnPath(), requestHeaders);
 
         int level = 0;
-
+        Set<Person> loaderStammdaten = new LinkedHashSet<>();
         final Set<CrawlerURL> allUrls = new LinkedHashSet<CrawlerURL>();
         final Set<HTMLPageResponse> verifiedUrls = new LinkedHashSet<HTMLPageResponse>();
         final Set<HTMLPageResponse> nonWorkingResponses = new LinkedHashSet<HTMLPageResponse>();
@@ -138,10 +149,58 @@ public class DefaultCrawler implements Crawler {
             workingUrls.addAll(list);
         }
 
+        if (dbStammdaten != null && dbStammdaten.size() > 0)
+        {
+            loaderStammdaten = dbStammdaten;
+        } else {
+            // Search for stammdatenFilename in the list of loadedAssets
+            AssetResponse stammdatenAsset = null;
+
+            for(AssetResponse assetResponse : loadedAssets) {
+                if (assetResponse.getUrl() != null && assetResponse.getUrl().toLowerCase().contains(stammdatenFilename.toLowerCase()) &&
+                        assetResponse.getAssetPath() != null && assetResponse.getAssetPath().toLowerCase().contains(stammdatenFilename.toLowerCase())) {
+                    stammdatenAsset = assetResponse;
+                    break;
+                }
+            }
+
+            if (stammdatenAsset != null) {
+                loaderStammdaten = assetsParser.getStammdaten(stammdatenAsset, deleteAfterParsing);
+                loadedAssets.remove(stammdatenAsset);
+            }
+        }
+
         return new CrawlerResult(configuration.getStartUrl(), configuration.isVerifyUrls()
                 ? workingUrls
-                : allUrls, verifiedUrls, nonWorkingResponses, host, loadedAssets, assetsParser.getProtokolls(loadedAssets));
+                : allUrls, verifiedUrls, nonWorkingResponses, host, loadedAssets, assetsParser.getProtokolls(loadedAssets, loaderStammdaten, deleteAfterParsing), loaderStammdaten);
+    }
 
+    /**
+     * Send notifications about new protokolls
+     *
+     * @param notificationString notification with list of protokoll ids
+     * @return the confirmation of notification request
+     */
+    public HTMLPageResponse sendNotification(CrawlerURL crawlerURL, String notificationString, Map<String, String> requestHeaders) {
+
+        final Callable<HTMLPageResponse> task = new JsonRequestCallable(requestProcessor, crawlerURL, HttpMethod.POST, true, requestHeaders, notificationString);
+
+        Future<HTMLPageResponse> future = service.submit(task);
+
+        try {
+            if (!future.isCancelled()) {
+                return future.get();
+            } else {
+                return new HTMLPageResponse(crawlerURL,
+                        StatusCode.SC_SERVER_RESPONSE_TIMEOUT.getCode(),
+                        Collections.<String, String>emptyMap(), "", "", 0, "", 0);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return new HTMLPageResponse(crawlerURL,
+                    StatusCode.SC_SERVER_RESPONSE_UNKNOWN.getCode(),
+                    Collections.<String, String>emptyMap(), "", "", 0, "", -1);
+        }
     }
 
     /**
@@ -282,7 +341,7 @@ public class DefaultCrawler implements Crawler {
         if (filters.length > 0 ) {
             for (CrawlerURL url : allUrls) {
                 for (String filter: filters) {
-                    if (url.getUrl().contains(filter)) {
+                    if (url.getUrl().toLowerCase().contains(filter.toLowerCase())) {
                         urlsThatNeedsVerification.add(url);
                         break;
                     }

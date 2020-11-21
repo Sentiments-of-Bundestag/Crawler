@@ -20,10 +20,11 @@ public class Protokoll {
     String berichtart;
     List<Redner> rednerListe;
     Sitzungsverlauf sitzungsverlauf;
+    boolean notified;
 
     public Protokoll() {}
 
-    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, String berichtart, List<Redner> rednerListe, Sitzungsverlauf sitzungsverlauf) {
+    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, String berichtart, List<Redner> rednerListe, Sitzungsverlauf sitzungsverlauf, boolean notified) {
         this.id = id;
         this.ort = ort;
         this.naechsteSitzung = naechsteSitzung;
@@ -32,6 +33,7 @@ public class Protokoll {
         this.berichtart = berichtart;
         this.rednerListe = rednerListe;
         this.sitzungsverlauf = sitzungsverlauf;
+        this.notified = notified;
     }
 
     public Sitzungsverlauf getSitzungsverlauf() {
@@ -66,6 +68,8 @@ public class Protokoll {
         return berichtart;
     }
 
+    public boolean getNotified() { return notified; }
+
     public void setId(int id) {
         this.id = id;
     }
@@ -96,6 +100,14 @@ public class Protokoll {
 
     public void setSitzungsverlauf(Sitzungsverlauf sitzungsverlauf) {
         this.sitzungsverlauf = sitzungsverlauf;
+    }
+
+    public boolean isNotified() {
+        return notified;
+    }
+
+    public void setNotified(boolean notified) {
+        this.notified = notified;
     }
 
     @Override

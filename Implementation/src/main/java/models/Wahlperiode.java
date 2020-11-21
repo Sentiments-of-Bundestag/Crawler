@@ -4,8 +4,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Document
 public class Wahlperiode {
@@ -13,18 +13,18 @@ public class Wahlperiode {
     int id;
     Date anfangDatum;
     Date endeDatum;
-    List<Protokoll> protokolle;
+    Set<Protokoll> protokolle;
 
     public Wahlperiode() {}
 
-    public Wahlperiode(int id, Date anfangDatum, Date endeDatum, List<Protokoll> protokolle){
+    public Wahlperiode(int id, Date anfangDatum, Date endeDatum, Set<Protokoll> protokolle){
         this.id = id;
         this.anfangDatum = anfangDatum;
         this.endeDatum = endeDatum;
         this.protokolle = protokolle;
     }
 
-    public List<Protokoll> getProtokolle() {
+    public Set<Protokoll> getProtokolle() {
         return protokolle;
     }
 
@@ -52,7 +52,7 @@ public class Wahlperiode {
         this.endeDatum = endeDatum;
     }
 
-    public void setProtokolle(List<Protokoll> protokolle) {
+    public void setProtokolle(Set<Protokoll> protokolle) {
         this.protokolle = protokolle;
     }
 

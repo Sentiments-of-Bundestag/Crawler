@@ -2,17 +2,17 @@ package crawler.core.assets.impl;
 
 import crawler.core.assets.AssetResponse;
 import crawler.core.assets.AssetsParser;
+import models.Person.Person;
 import models.Protokoll;
-import models.Wahlperiode;
 
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
-
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -21,25 +21,112 @@ public class DefaultAssetsParser implements AssetsParser {
     public DefaultAssetsParser() {}
 
     @Override
-    public Protokoll getProtokoll(String protocolVersion, String fileName) {
+    public Set<Protokoll> getProtokolls(Set<AssetResponse> assetResponses, Set<Person> stammdaten, boolean deleteAfterParsing) {
+        Set<Protokoll> protokolls = new LinkedHashSet<>();
+
+        for (AssetResponse assetResponse : assetResponses) {
+            if (assetResponse.getAssetPath() != null) {
+                if (assetResponse.getAssetPath().endsWith("xml") && assetResponse.getAssetPath().contains("data")) {
+                    protokolls.add(getProtokoll(assetResponse.getAssetPath()));
+                } else if (assetResponse.getAssetPath().endsWith("zip") && assetResponse.getAssetPath().contains("data") && assetResponse.getAssetPath().contains("pp")) {
+                    Set<Protokoll> wahlPeriodeProtokolls = getWahlPeriodeProtokolls(assetResponse.getAssetPath());
+                    protokolls.addAll(wahlPeriodeProtokolls);
+                }
+            }
+        }
+
+        // clean downloaded assets after parsing them
+        if (deleteAfterParsing) {
+            cleanDownloadedAssets(assetResponses);
+        }
+
+        return protokolls;
+    }
+
+    @Override
+    public Set<Person> getStammdaten(AssetResponse assetResponse, boolean deleteAfterParsing) {
+        Set<Person> stammdaten = getStammdatenFromZipFile(assetResponse.getAssetPath());
+
+        // delete asset after parsing
+        if (deleteAfterParsing) {
+            delete(assetResponse.getAssetPath());
+        }
+
+        return stammdaten;
+    }
+
+    /**
+     * Get list of persons (stammdaten) from file (zip)
+     *
+     * @param filename fileName path of the file (zip)
+     * @return list of persons
+     */
+    private static Set<Person> getStammdatenFromZipFile(String filename) {
+        Set<Person> stammdaten = new LinkedHashSet<>();
+
+        // Unzip Stammdaten file
+        String[] filenameDestParts = filename.split(".");
+        String destinationDir = filenameDestParts.length == 2 ? filenameDestParts[0] : null;
+        if (destinationDir != null && "zip".equals(filenameDestParts[1])) {
+            unzip(filename, destinationDir);
+            final FileNameExtensionFilter extensionFilter = new FileNameExtensionFilter("N/A", "xml");
+            final File file = new File(destinationDir);
+            for (final File child : Objects.requireNonNull(file.listFiles())) {
+                if(extensionFilter.accept(child)) {
+                    stammdaten.addAll(getStammdaten(child.getPath()));
+                }
+            }
+        }
+
+        return stammdaten;
+    }
+
+    /**
+     * Get list of persons (stammdaten) from file (xml)
+     *
+     * @param filename fileName path of the file (xml)
+     * @return list of persons
+     */
+    private static Set<Person> getStammdaten(String filename) {
+        Set<Person> stammdaten = new LinkedHashSet<>();
+        // Need to pe implemented (@Marlon)
+
+        return stammdaten;
+    }
+
+    /**
+     * Parse a protokoll from file
+     * @param filename path of the file
+     * @return list of protokolls
+     */
+    private static Protokoll getProtokoll(String filename) {
         Protokoll protokoll = new Protokoll();
         // Need to pe implemented (@Marlon)
 
         return protokoll;
     }
 
-    @Override
-    public Wahlperiode getWahlPeriode(String wahlPeriodeVersion, String fileName) {
-        Wahlperiode wahlperiode = new Wahlperiode();
-        // Need to pe implemented (@Marlon)
-
-        return wahlperiode;
-    }
-
-    @Override
-    public Set<Protokoll> getProtokolls(Set<AssetResponse> assetResponses) {
+    /**
+     * Get list of protokolls for an entire wahlperiode (*.zip)
+     * @param filename path of the file
+     * @return list of protokolls
+     */
+    private static Set<Protokoll> getWahlPeriodeProtokolls(String filename) {
         Set<Protokoll> protokolls = new LinkedHashSet<>();
-        // Need to pe implemented (@Marlon)
+
+        // Unzip the file (wahlperiode should always be a zip file)
+        String[] filenameDestParts = filename.split("\\.");
+        String destinationDir = filenameDestParts.length == 2 ? filenameDestParts[0] : null;
+        if (destinationDir != null && "zip".equals(filenameDestParts[1])) {
+            unzip(filename, destinationDir);
+            final FileNameExtensionFilter extensionFilter = new FileNameExtensionFilter("N/A", "xml");
+            final File file = new File(destinationDir);
+            for (final File child : Objects.requireNonNull(file.listFiles())) {
+                if(extensionFilter.accept(child)) {
+                    protokolls.add(getProtokoll(child.getPath()));
+                }
+            }
+        }
 
         return protokolls;
     }
@@ -50,7 +137,6 @@ public class DefaultAssetsParser implements AssetsParser {
      * @param destDir destination directory
      */
     private static void unzip(String zipFilePath, String destDir) {
-
         File dir = new File(destDir);
         // create output directory if it doesn't exist
         if(!dir.exists()) dir.mkdirs();
@@ -85,6 +171,16 @@ public class DefaultAssetsParser implements AssetsParser {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * clean downloaded assets
+     * @param assetResponses asset list
+     */
+    private static void cleanDownloadedAssets(Set<AssetResponse> assetResponses) {
+        for (AssetResponse assetResponse : assetResponses) {
+            delete(assetResponse.getAssetPath());
+        }
     }
 
     /**

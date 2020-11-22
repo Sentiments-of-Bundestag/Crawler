@@ -1,7 +1,11 @@
 package Utils;
 
+import model.Sitzung.Rede;
+import model.Sitzung.RedeTeil;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.zip.DataFormatException;
@@ -66,5 +70,35 @@ public class Utils {
             sort(arr, pi+1, high);
         }
         return arr;
+    }
+
+    public static List<RedeTeil> listSort(List<RedeTeil> list) {
+        return listSort(list, 0, list.size() - 1);
+    }
+
+    public static List<RedeTeil> listSort(List<RedeTeil> list, int from, int to) {
+        if (from < to) {
+            int pivot = from;
+            int left = from+1;
+            int right = to;
+            int pivotValue = list.get(pivot).getZeile_nr();
+            while (left <= right) {
+                // left <= to -> limit protection
+                while (left <= to && pivotValue >= list.get(left).getZeile_nr()) {
+                    left++;
+                }
+                // right > from -> limit protection
+                while (right > from && pivotValue < list.get(right).getZeile_nr()) {
+                    right--;
+                }
+                if (left < right) {
+                    Collections.swap(list, left, right);
+                }
+            }
+            Collections.swap(list, pivot, left - 1);
+            listSort(list, from, right - 1); // <-- pivot was wrong!
+            listSort(list, right + 1, to);   // <-- pivot was wrong!
+        }
+        return list;
     }
 }

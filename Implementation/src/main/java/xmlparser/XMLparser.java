@@ -52,7 +52,8 @@ public class XMLparser {
 
     private File file;
     private Document doc;
-    private final List<Person> personList = new ArrayList<>();
+    private final List<Person> personBaseData = new ArrayList<>();
+    private final List<Person> rednerList = new ArrayList<>();
 
     public XMLparser(){
     }
@@ -87,11 +88,11 @@ public class XMLparser {
                 //create person from collected properties
                 Person person = new Person(id, personProperties.get(AKAD_TITEL_TAG), personProperties.get(VORNAME_TAG), personProperties.get(NACHNAME_TAG),
                         bioDataProperties.get(BERUF_TAG), bioDataProperties.get(GESCHLECHT_TAG), Utils.StringToDate(bioDataProperties.get(GEBURTSDATUM_TAG)), bioDataProperties.get(FAMILIENSTAND_TAG), bioDataProperties.get(RELIGION_TAG), bioDataProperties.get(GEBURTSORT_TAG), fraktionen);
-                personList.add(person);
+                personBaseData.add(person);
             }
 
         }
-        return personList;
+        return personBaseData;
     }
 
     public void parseProtocol(String path){
@@ -105,10 +106,16 @@ public class XMLparser {
         Element dbtplenarprotokoll = doc.getDocumentElement();
 
         //get rednerliste
-        List<Integer> rednerIdList = getRednerList();
+        List<Integer> rednerIdList = getRednerIDList();
 
         //TODO: Add a new person for ids which can't be found in the base data person list but exist in the "rednerListe"
-        List<Person> rednerList = getPersonsById(rednerIdList);
+
+        for (int id : rednerIdList) {
+            Person person = getPersonById(id);
+            if(person != null){
+                rednerList.add(person);
+            }
+        }
 
         //get sitzungsverlauf
         Node sitzungsverlaufNode = doc.getElementsByTagName(SITZUNGSVERLAUF_TAG).item(0);
@@ -195,9 +202,34 @@ public class XMLparser {
                 }
             }
             redeTeile.removeAll(partsToRemove);
-            reden.add(new Rede(null, arrStartPoints[i], parts, 0));
+
+            //get redner name or id
+            String rednerString = rednerStartpoints.get(arrStartPoints[i]);
+
+            //check if it is a name or an id
+            int id;
+            try{
+                id = Integer.parseInt(rednerString);
+            }catch(NumberFormatException e){
+                id=-1;
+            }
+
+            //check if rede id exists
+            reden.add(new Rede(redenIdLine.getOrDefault(arrStartPoints[i] - 1, null), arrStartPoints[i], parts, id));
+
         }
         return reden;
+    }
+
+    private String resolvePersonData(String personData){
+        String[] personDataSplit = personData.split(" ");
+        int equalityScore;
+        String id;
+
+        for (Person person : rednerList) {
+
+        }
+        return null;
     }
 
 
@@ -289,7 +321,7 @@ public class XMLparser {
 
             }
 
-        return redeTeile;
+        return Utils.listSort(redeTeile);
     }
 
     private boolean checkAttribute(Element element, String attributeName, String className){
@@ -330,7 +362,7 @@ public class XMLparser {
     }
 
 
-    private List<Integer> getRednerList(){
+    private List<Integer> getRednerIDList(){
         List<Integer> rednerIdList = new ArrayList<>();
         NodeList rednerNodeList = doc.getElementsByTagName(REDNER_LIST_TAG);
 
@@ -349,22 +381,18 @@ public class XMLparser {
         return rednerIdList;
     }
 
-    private List<Person> getPersonsById(List<Integer> idList){
-        if(personList.isEmpty()){
+    private Person getPersonById(int id){
+        if(personBaseData.isEmpty()){
             return null;
         }
-        List<Person> rednerListe = new ArrayList<>();
-        for (int id :
-                idList) {
             for (Person person :
-                    personList) {
+                    personBaseData) {
                 if(person.getId() == id){
-                    rednerListe.add(person);
-                    break;
+                    return person;
                 }
             }
-        }
-        return rednerListe;
+
+        return null;
     }
 
     private void createDoc(String path){

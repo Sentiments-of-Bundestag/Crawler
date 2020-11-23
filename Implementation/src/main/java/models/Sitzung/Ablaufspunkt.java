@@ -7,12 +7,12 @@ import java.util.Objects;
 
 @Document
 public class Ablaufspunkt {
-    String ablaufTyp;
+    AblaufspunktTyp ablaufTyp;
     String thema;
     int zeile_nr;
     List<Rede> reden;
 
-    public Ablaufspunkt(String ablaufTyp, String thema, int zeileNr, List<Rede> reden) {
+    public Ablaufspunkt(AblaufspunktTyp ablaufTyp, String thema, int zeileNr, List<Rede> reden) {
         this.ablaufTyp = ablaufTyp;
         this.thema = thema;
         this.zeile_nr = zeileNr;
@@ -22,7 +22,7 @@ public class Ablaufspunkt {
     public Ablaufspunkt() {
     }
 
-    public String getAblaufTyp() {
+    public AblaufspunktTyp getAblaufTyp() {
         return ablaufTyp;
     }
 
@@ -38,7 +38,7 @@ public class Ablaufspunkt {
         return reden;
     }
 
-    public void setAblaufTyp(String ablaufTyp) {
+    public void setAblaufTyp(AblaufspunktTyp ablaufTyp) {
         this.ablaufTyp = ablaufTyp;
     }
 

@@ -6,7 +6,9 @@ import crawler.core.*;
 import crawler.core.assets.AssetFetcher;
 import crawler.core.assets.AssetResponse;
 import crawler.core.assets.AssetResponseCallable;
+import crawler.core.assets.AssetsParser;
 import crawler.util.StatusCode;
+import models.Crawler.Url;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,19 +33,22 @@ public class DefaultCrawler implements Crawler {
     private final AssetFetcher assetFetcher;
     private final ExecutorService service;
     private final PageURLParser parser;
+    private final AssetsParser assetsParser;
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicScheduler.class);
 
     /**
      * Create a new crawler.
-     *  @param theResponseFetcher the response fetcher to use.
+     * @param theResponseFetcher the response fetcher to use.
      * @param theService the thread pool.
      * @param theParser the parser.
      * @param theAssetFetcher
+     * @param theAssetsParser
      */
     @Inject
     public DefaultCrawler(HTMLPageResponseFetcher theResponseFetcher, ExecutorService theService,
                           PageURLParser theParser,
                           AssetFetcher theAssetFetcher,
+                          AssetsParser theAssetsParser,
                           @Named(CrawlerConfiguration.FILE_FILTERS_PROPERTY_NAME) String theFileFilters,
                           @Named(CrawlerConfiguration.DEFAULT_DOWNLOAD_FILE_LOCATION_PROPERTY_NAME) String theDownloadFileLocation
                           ) {
@@ -53,6 +58,7 @@ public class DefaultCrawler implements Crawler {
         fileFilters = theFileFilters;
         downloadFileLocation = theDownloadFileLocation;
         assetFetcher = theAssetFetcher;
+        assetsParser = theAssetsParser;
     }
 
     /**
@@ -67,9 +73,10 @@ public class DefaultCrawler implements Crawler {
      * Get the urls.
      *
      * @param configuration how to perform the crawl
+     * @param dbUrls list of urls from the db
      * @return the result of the crawl
      */
-    public CrawlerResult getUrls(CrawlerConfiguration configuration) {
+    public CrawlerResult getUrls(CrawlerConfiguration configuration, Set<Url> dbUrls) {
         final Map<String, String> requestHeaders = configuration.getRequestHeadersMap();
         final HTMLPageResponse resp =
                 verifyInput(configuration.getStartUrl(), configuration.getOnlyOnPath(), requestHeaders);
@@ -111,7 +118,7 @@ public class DefaultCrawler implements Crawler {
         }
 
         if (configuration.isVerifyUrls()) {
-            loadedAssets = verifyUrlsAndLoadFiles(allUrls, verifiedUrls, nonWorkingResponses, requestHeaders);
+            loadedAssets = verifyUrlsAndLoadFiles(allUrls, verifiedUrls, nonWorkingResponses, requestHeaders, dbUrls);
         }
         //verifyUrls(allUrls, verifiedUrls, nonWorkingResponses, requestHeaders);
 
@@ -133,7 +140,7 @@ public class DefaultCrawler implements Crawler {
 
         return new CrawlerResult(configuration.getStartUrl(), configuration.isVerifyUrls()
                 ? workingUrls
-                : allUrls, verifiedUrls, nonWorkingResponses, loadedAssets);
+                : allUrls, verifiedUrls, nonWorkingResponses, host, loadedAssets, assetsParser.getProtokolls(loadedAssets));
 
     }
 
@@ -265,7 +272,7 @@ public class DefaultCrawler implements Crawler {
      * @param nonWorkingUrls links that are not working
      */
     private Set<AssetResponse> verifyUrlsAndLoadFiles(Set<CrawlerURL> allUrls, Set<HTMLPageResponse> verifiedUrls,
-                            Set<HTMLPageResponse> nonWorkingUrls, Map<String, String> requestHeaders) {
+                            Set<HTMLPageResponse> nonWorkingUrls, Map<String, String> requestHeaders, Set<Url> dbUrls) {
 
         Set<CrawlerURL> urlsThatNeedsVerification = new LinkedHashSet<CrawlerURL>();
         Set<AssetResponse> loadedAssets = new LinkedHashSet<AssetResponse>();
@@ -283,6 +290,12 @@ public class DefaultCrawler implements Crawler {
             }
         }
         urlsThatNeedsVerification.removeAll(verifiedUrls);
+
+        for (Url dbUrl : dbUrls) {
+            urlsThatNeedsVerification.removeIf(urlTNeed -> urlTNeed.getUrl().equals(dbUrl.getValue())
+                    && dbUrl.getLastStatusCode() == HttpStatus.SC_OK && "Asset".equals(dbUrl.getType()));
+        }
+
 
         final Set<Callable<AssetResponse>> tasks =
                 new HashSet<>(urlsThatNeedsVerification.size());
@@ -307,7 +320,7 @@ public class DefaultCrawler implements Crawler {
                     CrawlerURL responseURL = new CrawlerURL(response.getUrl());
                     if (response.getResponseCode() == HttpStatus.SC_OK && response.getAssetSize() >= 0) {
                         // remove, way of catching interrupted / execution e
-                        urlsThatNeedsVerification.remove(responseURL);
+                        urlsThatNeedsVerification.removeIf(urlTN -> urlTN.getUrl().equals(responseURL.getUrl()));
                         loadedAssets.add(response);
                         verifiedUrls.add(new HTMLPageResponse(new CrawlerURL(response.getUrl()),
                                 response.getResponseCode(), Collections.<String, String>emptyMap(),

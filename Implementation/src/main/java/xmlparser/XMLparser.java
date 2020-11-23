@@ -3,8 +3,8 @@ package xmlparser;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 
-import model.Person.Person;
-import model.Person.Redner;
+import models.Person.Person;
+import models.Person.Redner;
 import org.w3c.dom.*;
 
 import java.io.File;

@@ -1,4 +1,4 @@
-import model.Person.Person;
+import models.Person.Person;
 import xmlparser.XMLparser;
 
 import java.net.URL;

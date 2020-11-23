@@ -1,6 +1,6 @@
-package model;
+package models;
 
-import model.Person.Person;
+import models.Person.Person;
 
 import java.util.List;
 

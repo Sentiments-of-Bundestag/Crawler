@@ -1,7 +1,7 @@
 package Utils;
 
-import model.Sitzung.Rede;
-import model.Sitzung.RedeTeil;
+import models.Sitzung.Rede;
+import models.Sitzung.RedeTeil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -81,14 +81,14 @@ public class Utils {
             int pivot = from;
             int left = from+1;
             int right = to;
-            int pivotValue = list.get(pivot).getZeile_nr();
+            int pivotValue = list.get(pivot).getZeileNr();
             while (left <= right) {
                 // left <= to -> limit protection
-                while (left <= to && pivotValue >= list.get(left).getZeile_nr()) {
+                while (left <= to && pivotValue >= list.get(left).getZeileNr()) {
                     left++;
                 }
                 // right > from -> limit protection
-                while (right > from && pivotValue < list.get(right).getZeile_nr()) {
+                while (right > from && pivotValue < list.get(right).getZeileNr()) {
                     right--;
                 }
                 if (left < right) {

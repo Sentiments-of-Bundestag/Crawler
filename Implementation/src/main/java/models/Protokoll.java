@@ -1,6 +1,6 @@
 package models;
 
-import models.Person.Redner;
+import models.Person.Person;
 import models.Sitzung.Sitzungsverlauf;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -18,13 +18,13 @@ public class Protokoll {
     Date sitzungDatum;
     String issn;
     String berichtart;
-    List<Redner> rednerListe;
+    List<Person> rednerListe;
     Sitzungsverlauf sitzungsverlauf;
     boolean notified;
 
     public Protokoll() {}
 
-    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, String berichtart, List<Redner> rednerListe, Sitzungsverlauf sitzungsverlauf, boolean notified) {
+    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, String berichtart, List<Person> rednerListe, Sitzungsverlauf sitzungsverlauf, boolean notified) {
         this.id = id;
         this.ort = ort;
         this.naechsteSitzung = naechsteSitzung;
@@ -40,7 +40,7 @@ public class Protokoll {
         return sitzungsverlauf;
     }
 
-    public List<Redner> getRednerListe() {
+    public List<Person> getRednerListe() {
         return rednerListe;
     }
 
@@ -94,7 +94,7 @@ public class Protokoll {
         this.berichtart = berichtart;
     }
 
-    public void setRednerListe(List<Redner> rednerListe) {
+    public void setRednerListe(List<Person> rednerListe) {
         this.rednerListe = rednerListe;
     }
 

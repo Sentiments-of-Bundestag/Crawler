@@ -3,6 +3,8 @@ package models.Crawler;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Date;
 import java.util.Objects;
 
@@ -25,6 +27,21 @@ public class Url {
     int downloadedAssetSize;
 
     public Url() {}
+
+    public Url(String url) {
+        try {
+            URL httURL = new URL(url);
+            this.host = httURL.getHost();
+            this.value = url;
+            this.lastRequestTime = null;
+            this.lastStatusCode = -1;
+            this.downloadedAssetSize = -1;
+            this.downloadedAsset = null;
+            this.type = "Page";
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public Url(String host, String value, Date lastRequestTime, int lastStatusCode, String downloadedAsset, int downloadedAssetSize, String type) {
         this.host = host;

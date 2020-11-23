@@ -1,6 +1,7 @@
 package crawler.core;
 
 import crawler.core.assets.AssetResponse;
+import models.Person.Person;
 import models.Protokoll;
 
 import java.util.Collections;
@@ -20,26 +21,33 @@ public class CrawlerResult {
     private final String startPointHost;
     private final Set<AssetResponse> loadedAssets;
     private final Set<Protokoll> loadedProtokolls;
+    private final Set<Person> loaderStammdaten;
 
     /**
      * Create the result from a crawl.
-     * @param theStartPoint where the crawl was started
-     * @param theUrls the urls that was fetched
-     * @param theVerifiedResponses the verified responses
-     * @param theNonWorkingResponses the non working urls
-     * @param theStartPointHost
-     * @param theLoadedAssets
-     * @param theLoadedProtokolls
+     * @param startPoint where the crawl was started
+     * @param urls the urls that was fetched
+     * @param verifiedResponses the verified responses
+     * @param nonWorkingResponses the non working urls
+     * @param startPointHost
+     * @param loadedAssets
+     * @param loadedProtokolls
+     * @param loaderStammdaten
      */
-    public CrawlerResult(String theStartPoint, Set<CrawlerURL> theUrls,
-                         Set<HTMLPageResponse> theVerifiedResponses, Set<HTMLPageResponse> theNonWorkingResponses, String theStartPointHost, Set<AssetResponse> theLoadedAssets, Set<Protokoll> theLoadedProtokolls) {
-        startPoint = theStartPoint;
-        urls = theUrls;
-        nonWorkingResponses = theNonWorkingResponses;
-        verifiedResponses = theVerifiedResponses;
-        startPointHost = theStartPointHost;
-        loadedAssets = theLoadedAssets;
-        loadedProtokolls = theLoadedProtokolls;
+    public CrawlerResult(String startPoint, Set<CrawlerURL> urls,
+                         Set<HTMLPageResponse> verifiedResponses,
+                         Set<HTMLPageResponse> nonWorkingResponses,
+                         String startPointHost, Set<AssetResponse> loadedAssets,
+                         Set<Protokoll> loadedProtokolls,
+                         Set<Person> loaderStammdaten) {
+        this.startPoint = startPoint;
+        this.urls = urls;
+        this.nonWorkingResponses = nonWorkingResponses;
+        this.verifiedResponses = verifiedResponses;
+        this.startPointHost = startPointHost;
+        this.loadedAssets = loadedAssets;
+        this.loadedProtokolls = loadedProtokolls;
+        this.loaderStammdaten = loaderStammdaten;
     }
 
     /**
@@ -99,5 +107,9 @@ public class CrawlerResult {
 
     public Set<Protokoll> getLoadedProtokolls() {
         return loadedProtokolls;
+    }
+
+    public Set<Person> getLoaderStammdaten() {
+        return loaderStammdaten;
     }
 }

@@ -1,12 +1,11 @@
 package web.service;
 
 import models.Crawler.Configuration;
-import models.Crawler.Constants;
-import repositories.Crawler.ConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import repositories.Crawler.ConfigurationRepository;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ public class ConfigurationService {
         this.configRepository = configRepository;
         this.configurationList = new ConcurrentHashMap<>();
         this.mandatoryConfigs = new ArrayList<>();
-        this.mandatoryConfigs.add(Constants.CONFIG_KEY_REFRESH_RATE_CONFIG);
+        // this.mandatoryConfigs.add(Constants.CONFIG_KEY_REFRESH_RATE_CONFIG);
     }
 
     /**

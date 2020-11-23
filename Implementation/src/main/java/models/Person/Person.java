@@ -3,6 +3,7 @@ package models.Person;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -10,12 +11,13 @@ import java.util.Objects;
 public class Person {
 
     @Id
+    int id;
     String titel;
     String vorname;
     String nachname;
     String beruf;
     String geschlecht;
-    String geburtsdatum;
+    Date geburtsdatum;
     String familienstand;
     String religion;
     String geburtsort;
@@ -23,8 +25,8 @@ public class Person {
 
     public Person() {}
 
-    public Person(String titel, String vorname, String nachname, String beruf, String geschlecht, String geburtsdatum, String familienstand, String religion, String geburtsort, List<Fraktion> fraktionen) {
-
+    public Person(int id, String titel, String vorname, String nachname, String beruf, String geschlecht, Date geburtsdatum, String familienstand, String religion, String geburtsort, List<Fraktion> fraktionen) {
+        this.id = id;
         this.titel = titel;
         this.vorname = vorname;
         this.nachname = nachname;
@@ -37,6 +39,9 @@ public class Person {
         this.fraktionen = fraktionen;
     }
 
+    public int getId() {
+        return id;
+    }
 
     public List<Fraktion> getFraktionen() {
         return fraktionen;
@@ -50,7 +55,7 @@ public class Person {
         return geschlecht;
     }
 
-    public String getGeburtsdatum() {
+    public Date getGeburtsdatum() {
         return geburtsdatum;
     }
 
@@ -98,7 +103,7 @@ public class Person {
         this.geschlecht = geschlecht;
     }
 
-    public void setGeburtsdatum(String geburtsdatum) {
+    public void setGeburtsdatum(Date geburtsdatum) {
         this.geburtsdatum = geburtsdatum;
     }
 

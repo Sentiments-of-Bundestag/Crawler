@@ -1,6 +1,6 @@
 package models;
 
-import models.Person.Redner;
+import models.Person.Person;
 import models.Sitzung.Sitzungsverlauf;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -18,12 +18,13 @@ public class Protokoll {
     Date sitzungDatum;
     String issn;
     String berichtart;
-    List<Redner> rednerListe;
+    List<Person> rednerListe;
     Sitzungsverlauf sitzungsverlauf;
+    boolean notified;
 
     public Protokoll() {}
 
-    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, String berichtart, List<Redner> rednerListe, Sitzungsverlauf sitzungsverlauf) {
+    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, String berichtart, List<Person> rednerListe, Sitzungsverlauf sitzungsverlauf, boolean notified) {
         this.id = id;
         this.ort = ort;
         this.naechsteSitzung = naechsteSitzung;
@@ -32,13 +33,14 @@ public class Protokoll {
         this.berichtart = berichtart;
         this.rednerListe = rednerListe;
         this.sitzungsverlauf = sitzungsverlauf;
+        this.notified = notified;
     }
 
     public Sitzungsverlauf getSitzungsverlauf() {
         return sitzungsverlauf;
     }
 
-    public List<Redner> getRednerListe() {
+    public List<Person> getRednerListe() {
         return rednerListe;
     }
 
@@ -66,6 +68,8 @@ public class Protokoll {
         return berichtart;
     }
 
+    public boolean getNotified() { return notified; }
+
     public void setId(int id) {
         this.id = id;
     }
@@ -90,12 +94,20 @@ public class Protokoll {
         this.berichtart = berichtart;
     }
 
-    public void setRednerListe(List<Redner> rednerListe) {
+    public void setRednerListe(List<Person> rednerListe) {
         this.rednerListe = rednerListe;
     }
 
     public void setSitzungsverlauf(Sitzungsverlauf sitzungsverlauf) {
         this.sitzungsverlauf = sitzungsverlauf;
+    }
+
+    public boolean isNotified() {
+        return notified;
+    }
+
+    public void setNotified(boolean notified) {
+        this.notified = notified;
     }
 
     @Override

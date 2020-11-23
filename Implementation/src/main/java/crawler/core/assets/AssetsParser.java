@@ -1,7 +1,7 @@
 package crawler.core.assets;
 
+import models.Person.Person;
 import models.Protokoll;
-import models.Wahlperiode;
 
 import java.util.Set;
 
@@ -11,9 +11,7 @@ import java.util.Set;
  */
 public interface AssetsParser {
 
-    Protokoll getProtokoll(String protocolVersion, String fileName);
+    Set<Protokoll> getProtokolls(Set<AssetResponse> assetResponses, Set<Person> stammdaten, boolean deleteAfterParsing);
 
-    Wahlperiode getWahlPeriode(String wahlPeriodeVersion, String fileName);
-
-    Set<Protokoll> getProtokolls(Set<AssetResponse> assetResponses);
+    Set<Person> getStammdaten(AssetResponse assetResponse, boolean deleteAfterParsing);
 }

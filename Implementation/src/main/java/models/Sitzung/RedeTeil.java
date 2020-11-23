@@ -8,11 +8,11 @@ import java.util.Objects;
 public class RedeTeil {
     String text;
     int zeileNr;
-    String typ;
+    RedeTeilTyp typ;
 
     public RedeTeil() {}
 
-    public RedeTeil(String text, int zeileNr, String typ) {
+    public RedeTeil(String text, int zeileNr, RedeTeilTyp typ) {
         this.text = text;
         this.zeileNr = zeileNr;
         this.typ = typ;
@@ -26,7 +26,7 @@ public class RedeTeil {
         return zeileNr;
     }
 
-    public String getTyp() {
+    public RedeTeilTyp getTyp() {
         return typ;
     }
 
@@ -38,7 +38,7 @@ public class RedeTeil {
         this.zeileNr = zeileNr;
     }
 
-    public void setTyp(String typ) {
+    public void setTyp(RedeTeilTyp typ) {
         this.typ = typ;
     }
 

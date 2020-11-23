@@ -1,10 +1,15 @@
+import models.Person.Person;
 import xmlparser.XMLparser;
 
 import java.net.URL;
+import java.util.List;
 
 public class main {
     public static void main(String[] args) {
         XMLparser xmLparser = new XMLparser();
-        xmLparser.parseBaseData("/Protokolle/Stammdaten/MDB_STAMMDATEN.XML");
+        List<Person> personen = xmLparser.parseBaseData("/Protokolle/Stammdaten/MDB_STAMMDATEN.XML");
+
+        xmLparser.parseProtocol("/Protokolle/Wahlperiode/19/19184-data.xml");
+
     }
 }

@@ -1,7 +1,7 @@
 package crawler.core.assets;
 
-import org.jsoup.nodes.Document;
-import crawler.core.CrawlerURL;
+import models.Person.Person;
+import models.Protokoll;
 
 import java.util.Set;
 
@@ -11,5 +11,7 @@ import java.util.Set;
  */
 public interface AssetsParser {
 
-    Set<CrawlerURL> getAssets(Document doc, String referer);
+    Set<Protokoll> getProtokolls(Set<AssetResponse> assetResponses, Set<Person> stammdaten, boolean deleteAfterParsing);
+
+    Set<Person> getStammdaten(AssetResponse assetResponse, boolean deleteAfterParsing);
 }

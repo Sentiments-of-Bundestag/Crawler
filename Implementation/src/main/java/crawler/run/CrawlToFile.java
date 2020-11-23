@@ -1,5 +1,8 @@
 package crawler.run;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import crawler.core.Crawler;
@@ -8,12 +11,18 @@ import crawler.core.CrawlerURL;
 import crawler.core.HTMLPageResponse;
 import crawler.module.CrawlModule;
 import crawler.util.StatusCode;
+import models.Crawler.Notification;
+import models.Crawler.Url;
+import models.Person.Person;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.http.HttpStatus;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Crawl to File. To files will be created, one with the working urls &amp; one with the none working
@@ -40,30 +49,11 @@ public class CrawlToFile extends AbstractCrawl {
         verbose = Boolean.parseBoolean(getLine().getOptionValue("verbose", "false"));
     }
 
-    /**
-     * Run.
-     *
-     * @param args the args
-     */
-    public static void main(String[] args) {
-
-        try {
-            final CrawlToFile crawl = new CrawlToFile(args);
-            crawl.crawl();
-
-        } catch (ParseException e) {
-            System.err.print(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.err.println(e.getMessage());
-        }
-
-    }
-
-    public void crawl() {
+    public CrawlerResult crawl(Set<Url> dbUrls, Set<Person> dbStammdaten, boolean deleteAfterParsing) {
         final Injector injector = Guice.createInjector(new CrawlModule());
         final Crawler crawler = injector.getInstance(Crawler.class);
 
-        final CrawlerResult result = crawler.getUrls(getConfiguration());
+        final CrawlerResult result = crawler.getUrls(getConfiguration(), dbUrls, dbStammdaten, deleteAfterParsing);
 
         final StringBuilder workingUrls = new StringBuilder();
         final StringBuilder nonWorkingUrls = new StringBuilder();
@@ -93,8 +83,41 @@ public class CrawlToFile extends AbstractCrawl {
         }
 
         crawler.shutdown();
+
+        return result;
     }
 
+    public HTMLPageResponse SendNotification(String url, Notification notification) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        // configure objectMapper for pretty input
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        final Injector injector = Guice.createInjector(new CrawlModule());
+        final Crawler crawler = injector.getInstance(Crawler.class);
+        CrawlerURL crawlerURL = new CrawlerURL(url);
+
+        String notificationString = "";
+        try {
+            // write notifications to string for request body
+            notificationString = objectMapper.writeValueAsString(notification);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        Map<String, String> requestHeaders = new HashMap<>();
+        requestHeaders.put("Accept", "*/*");
+        requestHeaders.put("Content-Type", "application/json");
+        requestHeaders.put("Content-Length", String.valueOf(notificationString.length()));
+        requestHeaders.put("Connection", "keep-alive");
+        requestHeaders.put("Accept-Encoding", "gzip,deflate,br");
+        requestHeaders.put("Cache-Control", "no-cache");
+        requestHeaders.put("Pragma", "no-cache");
+        requestHeaders.put("Origin", crawlerURL.getHost());
+        HTMLPageResponse response = crawler.sendNotification(crawlerURL, notificationString, requestHeaders);
+
+        crawler.shutdown();
+
+        return response;
+    }
     /**
      * Get the options.
      *

@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.jcabi:jcabi-xml:0.16.2">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jcabi/jcabi-xml/0.16.2/584a881ce0534931fb51bc350a9887e6446ccb41/jcabi-xml-0.16.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jcabi/jcabi-xml/0.16.2/522b77fa6328dc95cc03a3cf61620077d161938d/jcabi-xml-0.16.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,9 +1,11 @@
 package xmlparser;
 
-import model.Person.Fraktion;
-import model.Person.Person;
+import models.Person.Fraktion;
 import Utils.Utils;
-import model.Sitzung.*;
+import models.Person.Person;
+import models.Sitzung.*;
+import models.Sitzung.AblaufspunktTyp;
+import models.Sitzung.RedeTeilTyp;
 import org.w3c.dom.*;
 
 import java.io.File;
@@ -75,7 +77,6 @@ public class XMLparser {
         for (int i = 0; i < mdbNodeList.getLength(); i++) {
             Node mdbNode = mdbNodeList.item(i);
             if(mdbNode.getNodeType() == Node.ELEMENT_NODE){
-                var line = mdbNode.getUserData("lineNumber");
                 Element mdbElement = (Element) mdbNode;
                 //get ID of persons
                 int id = Integer.parseInt(getPersonID(mdbElement));
@@ -172,7 +173,10 @@ public class XMLparser {
             NodeList redeNodeList = ((Element)node).getElementsByTagName(REDE_TAG);
             for (int j = 0; j < redeNodeList.getLength(); j++) {
                 Node redeNode = redeNodeList.item(j);
-                    int lineNumber = Integer.parseInt((String) redeNode.getUserData(LINE_NUMBER_TAG));
+                int lineNumber = -1;
+                if(redeNode.getUserData(LINE_NUMBER_TAG) instanceof String) {
+                    lineNumber = Integer.parseInt((String) redeNode.getUserData(LINE_NUMBER_TAG));
+                }
                     if(redeNode.getNodeType() == Node.ELEMENT_NODE){
                         String id = ((Element)redeNode).getAttribute(SMALL_ID_TAG);
                         result.put(lineNumber, id);
@@ -190,7 +194,7 @@ public class XMLparser {
             List<RedeTeil> parts = new ArrayList<>();
             List<RedeTeil> partsToRemove = new ArrayList<>();
             for (RedeTeil redeTeil: redeTeile){
-                int lineNumber = redeTeil.getZeile_nr();
+                int lineNumber = redeTeil.getZeileNr();
                 if (i == arrStartPoints.length - 1) {
                     parts.add(redeTeil);
                     partsToRemove.add(redeTeil);
@@ -259,7 +263,10 @@ public class XMLparser {
                     Node nameNode = nameNodeList.item(j);
                     Node parentNode = nameNode.getParentNode();
                     if(!parentNode.getNodeName().equals(REDNER_TAG)){
-                        int lineNumber = Integer.parseInt((String) nameNode.getUserData(LINE_NUMBER_TAG));
+                        int lineNumber = -1;
+                        if(nameNode.getUserData(LINE_NUMBER_TAG) instanceof String){
+                            lineNumber = Integer.parseInt((String) nameNode.getUserData(LINE_NUMBER_TAG));
+                        }
                         String name = nameNode.getTextContent();
                         result.put(lineNumber, name);
                     }
@@ -428,7 +435,6 @@ public class XMLparser {
 
         NodeList idNodeList = mdbElement.getElementsByTagName(ID_TAG);
         Node idNode = idNodeList.item(0);
-        var line = idNode.getUserData("lineNumber");
         id = idNode.getTextContent();
 
         return id;

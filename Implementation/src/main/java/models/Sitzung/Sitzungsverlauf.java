@@ -1,34 +1,84 @@
-package model.Sitzung;
+package models.Sitzung;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
+@Document
 public class Sitzungsverlauf {
-    private final int protokoll_id;
-    private final Date sitzung_start;
-    private final Date sitzung_ende;
-    private final List<Ablaufspunkt> ablaufspunkte;
+    @Id
+    int protokollId;
+    Date sitzungStart;
+    Date sitzungEnde;
+    List<Ablaufspunkt> ablaufspunkte;
 
-    public Sitzungsverlauf(int protokoll_id, Date sitzung_start, Date sitzung_ende, List<Ablaufspunkt> ablaufspunkte) {
-        this.protokoll_id = protokoll_id;
-        this.sitzung_start = sitzung_start;
-        this.sitzung_ende = sitzung_ende;
+    public Sitzungsverlauf() {}
+
+    public Sitzungsverlauf(int protokollId, Date sitzungStart, Date sitzungEnde, List<Ablaufspunkt> ablaufspunkte) {
+        this.protokollId = protokollId;
+        this.sitzungStart = sitzungStart;
+        this.sitzungEnde = sitzungEnde;
         this.ablaufspunkte = ablaufspunkte;
     }
 
-    public int getProtokoll_id() {
-        return protokoll_id;
+    public int getProtokollId() {
+        return protokollId;
     }
 
-    public Date getSitzung_start() {
-        return sitzung_start;
+    public Date getSitzungStart() {
+        return sitzungStart;
     }
 
-    public Date getSitzung_ende() {
-        return sitzung_ende;
+    public Date getSitzungEnde() {
+        return sitzungEnde;
     }
 
     public List<Ablaufspunkt> getAblaufspunkte() {
         return ablaufspunkte;
+    }
+
+    public void setProtokollId(int protokollId) {
+        this.protokollId = protokollId;
+    }
+
+    public void setSitzungStart(Date sitzungStart) {
+        this.sitzungStart = sitzungStart;
+    }
+
+    public void setSitzungEnde(Date sitzungEnde) {
+        this.sitzungEnde = sitzungEnde;
+    }
+
+    public void setAblaufspunkte(List<Ablaufspunkt> ablaufspunkte) {
+        this.ablaufspunkte = ablaufspunkte;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Sitzungsverlauf)) return false;
+        Sitzungsverlauf that = (Sitzungsverlauf) o;
+        return protokollId == that.protokollId &&
+                sitzungStart.equals(that.sitzungStart) &&
+                sitzungEnde.equals(that.sitzungEnde) &&
+                ablaufspunkte.equals(that.ablaufspunkte);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(protokollId, sitzungStart, sitzungEnde, ablaufspunkte);
+    }
+
+    @Override
+    public String toString() {
+        return "Sitzungsverlauf{" +
+                "protokollId=" + protokollId +
+                ", sitzungStart=" + sitzungStart +
+                ", sitzungEnde=" + sitzungEnde +
+                ", ablaufspunkte=" + ablaufspunkte +
+                '}';
     }
 }

@@ -1,13 +1,20 @@
-package model.Sitzung;
+package models.Sitzung;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Objects;
+
+@Document
 public class RedeTeil {
-    private final String text;
-    private final int zeile_nr;
-    private final RedeTeilTyp typ;
+    String text;
+    int zeileNr;
+    RedeTeilTyp typ;
 
-    public RedeTeil(String text, int zeile_nr, RedeTeilTyp typ) {
+    public RedeTeil() {}
+
+    public RedeTeil(String text, int zeileNr, RedeTeilTyp typ) {
         this.text = text;
-        this.zeile_nr = zeile_nr;
+        this.zeileNr = zeileNr;
         this.typ = typ;
     }
 
@@ -15,11 +22,47 @@ public class RedeTeil {
         return text;
     }
 
-    public int getZeile_nr() {
-        return zeile_nr;
+    public int getZeileNr() {
+        return zeileNr;
     }
 
     public RedeTeilTyp getTyp() {
         return typ;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public void setZeileNr(int zeileNr) {
+        this.zeileNr = zeileNr;
+    }
+
+    public void setTyp(RedeTeilTyp typ) {
+        this.typ = typ;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RedeTeil)) return false;
+        RedeTeil redeTeil = (RedeTeil) o;
+        return zeileNr == redeTeil.zeileNr &&
+                text.equals(redeTeil.text) &&
+                typ.equals(redeTeil.typ);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(text, zeileNr, typ);
+    }
+
+    @Override
+    public String toString() {
+        return "RedeTeil{" +
+                "text='" + text + '\'' +
+                ", zeileNr=" + zeileNr +
+                ", typ='" + typ + '\'' +
+                '}';
     }
 }

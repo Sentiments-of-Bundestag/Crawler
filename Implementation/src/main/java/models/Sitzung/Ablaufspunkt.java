@@ -1,22 +1,29 @@
-package model.Sitzung;
+package models.Sitzung;
+
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.Objects;
 
+@Document
 public class Ablaufspunkt {
-    private final AblaufspunktTyp ablauf_typ;
-    private final String thema;
-    private final int zeile_nr;
-    private final List<Rede> reden;
+    AblaufspunktTyp ablaufTyp;
+    String thema;
+    int zeile_nr;
+    List<Rede> reden;
 
-    public Ablaufspunkt(AblaufspunktTyp ablauf_typ, String thema, int zeile_nr, List<Rede> reden) {
-        this.ablauf_typ = ablauf_typ;
+    public Ablaufspunkt(AblaufspunktTyp ablaufTyp, String thema, int zeileNr, List<Rede> reden) {
+        this.ablaufTyp = ablaufTyp;
         this.thema = thema;
-        this.zeile_nr = zeile_nr;
+        this.zeile_nr = zeileNr;
         this.reden = reden;
     }
 
-    public AblaufspunktTyp getAblauf_typ() {
-        return ablauf_typ;
+    public Ablaufspunkt() {
+    }
+
+    public AblaufspunktTyp getAblaufTyp() {
+        return ablaufTyp;
     }
 
     public String getThema() {
@@ -29,5 +36,47 @@ public class Ablaufspunkt {
 
     public List<Rede> getReden() {
         return reden;
+    }
+
+    public void setAblaufTyp(AblaufspunktTyp ablaufTyp) {
+        this.ablaufTyp = ablaufTyp;
+    }
+
+    public void setThema(String thema) {
+        this.thema = thema;
+    }
+
+    public void setZeile_nr(int zeile_nr) {
+        this.zeile_nr = zeile_nr;
+    }
+
+    public void setReden(List<Rede> reden) {
+        this.reden = reden;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Ablaufspunkt)) return false;
+        Ablaufspunkt that = (Ablaufspunkt) o;
+        return zeile_nr == that.zeile_nr &&
+                ablaufTyp.equals(that.ablaufTyp) &&
+                thema.equals(that.thema) &&
+                reden.equals(that.reden);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ablaufTyp, thema, zeile_nr, reden);
+    }
+
+    @Override
+    public String toString() {
+        return "Ablaufspunkt{" +
+                "ablaufTyp='" + ablaufTyp + '\'' +
+                ", thema='" + thema + '\'' +
+                ", zeile_nr=" + zeile_nr +
+                ", reden=" + reden +
+                '}';
     }
 }

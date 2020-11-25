@@ -24,7 +24,7 @@ public class Protokoll {
 
     public Protokoll() {}
 
-    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, String berichtart, List<Person> rednerListe, Sitzungsverlauf sitzungsverlauf, boolean notified) {
+    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, String berichtart, List<Person> rednerListe, Sitzungsverlauf sitzungsverlauf) {
         this.id = id;
         this.ort = ort;
         this.naechsteSitzung = naechsteSitzung;
@@ -33,8 +33,7 @@ public class Protokoll {
         this.berichtart = berichtart;
         this.rednerListe = rednerListe;
         this.sitzungsverlauf = sitzungsverlauf;
-        this.notified = notified;
-    }
+            }
 
     public Sitzungsverlauf getSitzungsverlauf() {
         return sitzungsverlauf;

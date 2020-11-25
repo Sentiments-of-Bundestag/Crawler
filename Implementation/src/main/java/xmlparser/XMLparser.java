@@ -3,6 +3,7 @@ package xmlparser;
 import models.Person.Fraktion;
 import Utils.Utils;
 import models.Person.Person;
+import models.Protokoll;
 import models.Sitzung.*;
 import models.Sitzung.AblaufspunktTyp;
 import models.Sitzung.RedeTeilTyp;
@@ -51,6 +52,10 @@ public class XMLparser {
     static final String SMALL_ID_TAG = "id";
     static final String PARAGRAF_N_TAG = "N";
     static final String REDE_TAG = "rede";
+    static final String TOP_ID_TAG = "top-id";
+    static final String SITZUNG_NR_TAG =  "sitzung-nr";
+    static final String SITZUNG_START_TIME_TAG = "sitzung-start-uhrzeit";
+    static final String SITZUNG_ENDE_TIME_TAG = "sitzung-ende-uhrzeit";
 
     private File file;
     private Document doc;
@@ -88,7 +93,7 @@ public class XMLparser {
                 List<Fraktion> fraktionen = getFraktionen(mdbElement);
                 //create person from collected properties
                 Person person = new Person(id, personProperties.get(AKAD_TITEL_TAG), personProperties.get(VORNAME_TAG), personProperties.get(NACHNAME_TAG),
-                        bioDataProperties.get(BERUF_TAG), bioDataProperties.get(GESCHLECHT_TAG), Utils.StringToDate(bioDataProperties.get(GEBURTSDATUM_TAG)), bioDataProperties.get(FAMILIENSTAND_TAG), bioDataProperties.get(RELIGION_TAG), bioDataProperties.get(GEBURTSORT_TAG), fraktionen);
+                        bioDataProperties.get(BERUF_TAG), bioDataProperties.get(GESCHLECHT_TAG), Utils.stringToDate(bioDataProperties.get(GEBURTSDATUM_TAG)), bioDataProperties.get(FAMILIENSTAND_TAG), bioDataProperties.get(RELIGION_TAG), bioDataProperties.get(GEBURTSORT_TAG), fraktionen);
                 personBaseData.add(person);
             }
 
@@ -96,15 +101,24 @@ public class XMLparser {
         return personBaseData;
     }
 
-    public void parseProtocol(String path){
+    public Protokoll parseProtocol(String path){
         createDoc(path);
 
         if(doc == null){
             System.out.println("Document wasn't created");
-            return;
+            return null;
         }
 
         Element dbtplenarprotokoll = doc.getDocumentElement();
+
+        //get sitzungNr
+        String sitzungID = dbtplenarprotokoll.getAttribute(SITZUNG_NR_TAG);
+
+        //get sitzung start time
+        Date sitzungStart = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_START_TIME_TAG));
+
+        //get sitzung end time
+        Date sitzungEnd = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_ENDE_TIME_TAG));
 
         //get rednerliste
         List<Integer> rednerIdList = getRednerIDList();
@@ -132,19 +146,18 @@ public class XMLparser {
                 ablaufspunkte.add(getAblaufspunkt(sitzungsbeginnNode));
             }
 
-
             NodeList tagesOrdnungsPunkteNodeList = ((Element)sitzungsverlaufNode).getElementsByTagName(TAGESORDNUNGSPUNKT_TAG);
 
             for (int i = 0; i < tagesOrdnungsPunkteNodeList.getLength(); i++) {
                 Node tagesNode = tagesOrdnungsPunkteNodeList.item(i);
                 ablaufspunkte.add(getAblaufspunkt(tagesNode));
             }
-
-
         }
 
-
+        Sitzungsverlauf sitzung = new Sitzungsverlauf(Integer.parseInt(sitzungID), sitzungStart, sitzungEnd, ablaufspunkte);
         System.out.println("");
+
+        return null;
 
     }
 
@@ -159,7 +172,15 @@ public class XMLparser {
 
         List<Rede> reden = assignReden(redeTeile, rednerStartpoints, redenIdLine);
 
-        return new Ablaufspunkt(getAblaufspunktTyp(node), "Thema", 1, null);
+        int lineNumber = Integer.parseInt((String) node.getUserData(LINE_NUMBER_TAG));
+
+        if(node.getNodeType() == Node.ELEMENT_NODE){
+
+            return new Ablaufspunkt(getAblaufspunktTyp(node), ((Element)node).getAttribute(TOP_ID_TAG), lineNumber, reden);
+        }else{
+            return new Ablaufspunkt(getAblaufspunktTyp(node), null , lineNumber, reden);
+        }
+
     }
 
     private HashMap<Integer, String> getReden(Node node) {
@@ -215,7 +236,10 @@ public class XMLparser {
             try{
                 id = Integer.parseInt(rednerString);
             }catch(NumberFormatException e){
-                id=-1;
+                id = resolvePersonData(rednerString);
+                if(id == -1){
+                    System.out.println("Person with the data: " + rednerString + " couldn't be resolved");
+                }
             }
 
             //check if rede id exists
@@ -225,15 +249,30 @@ public class XMLparser {
         return reden;
     }
 
-    private String resolvePersonData(String personData){
-        String[] personDataSplit = personData.split(" ");
-        int equalityScore;
-        String id;
+    private int resolvePersonData(String personData){
+        String[] personDataSplit = personData.trim().toLowerCase().split("[\\s.]+");
+        int highestEqualityScore = 0;
+        int id = -1;
 
-        for (Person person : rednerList) {
-
+        for (int i = 0; i < personDataSplit.length; i++) {
+            personDataSplit[i] = personDataSplit[i].replaceAll("[^a-zA-Z\\äöü]","");
         }
-        return null;
+
+        for (Person person : personBaseData) {
+            int equalityScore = 0;
+            String personString = (person.getVorname() + " " + person.getNachname()  + " "+ person.getBeruf()  + " "+ person.getTitel()).toLowerCase();
+
+            for (String part : personDataSplit) {
+                if(personString.contains(part)){
+                    equalityScore++;
+                }
+            }
+            if(highestEqualityScore < equalityScore){
+                highestEqualityScore = equalityScore;
+                id = person.getId();
+            }
+        }
+        return id;
     }
 
 
@@ -474,7 +513,7 @@ public class XMLparser {
                         String institutionArt = ((Element)institutionNode).getElementsByTagName(INS_ART_TAG).item(0).getTextContent();
                         if(institutionArt.equals(INSART_FRAKTION_TAG)){
                             String institutionBeschreibung = ((Element)institutionNode).getElementsByTagName(INS_LANG_TAG).item(0).getTextContent();
-                            Fraktion fraktion = new Fraktion(null, institutionBeschreibung, Utils.StringToDate(eintritt), Utils.StringToDate(austritt));
+                            Fraktion fraktion = new Fraktion(null, institutionBeschreibung, Utils.stringToDate(eintritt), Utils.stringToDate(austritt));
                             fraktionen.add(fraktion);
                         }
                     }

@@ -60,6 +60,7 @@ public class XMLparser {
     static final String SITZUNG_NAECHSTE_DATUM = "sitzung-naechste-datum";
     static final String SITZUNG_ISSN_TAG =  "issn";
     static final String SITZUNG_DATUM_TAG = "sitzung-datum";
+    static final String WAHLPERIODE_PROTOCOL_TAG = "wahlperiode";
 
     private File file;
     private Document doc;
@@ -172,10 +173,10 @@ public class XMLparser {
         //get issn
         String issn = dbtplenarprotokoll.getAttribute(SITZUNG_ISSN_TAG);
 
-        Protokoll protokoll = new Protokoll(Integer.parseInt(sitzungID), ort, naechsteSitzung, sitzungDatum, issn, rednerList, sitzung);
+        //get wahlperiode
+        String wahlperiode = dbtplenarprotokoll.getAttribute(WAHLPERIODE_PROTOCOL_TAG);
 
-        return protokoll;
-
+        return new Protokoll(Integer.parseInt((wahlperiode+sitzungID)), ort, naechsteSitzung, sitzungDatum, issn, rednerList, sitzung);
     }
 
     private Ablaufspunkt getAblaufspunkt(Node node) {

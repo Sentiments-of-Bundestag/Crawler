@@ -8,7 +8,7 @@ import crawler.core.assets.AssetFetcher;
 import crawler.core.assets.AssetResponse;
 import crawler.core.assets.AssetResponseCallable;
 import crawler.core.assets.AssetsParser;
-import crawler.util.StatusCode;
+import crawler.utils.StatusCode;
 import models.Crawler.Url;
 import models.Person.Person;
 import org.apache.http.HttpStatus;
@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import web.service.DynamicScheduler;
 
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
@@ -336,13 +337,15 @@ public class DefaultCrawler implements Crawler {
         Set<CrawlerURL> urlsThatNeedsVerification = new LinkedHashSet<CrawlerURL>();
         Set<AssetResponse> loadedAssets = new LinkedHashSet<AssetResponse>();
 
-        String filesFilter = fileFilters != null ? fileFilters : ".xml;.zip";
+        String filesFilter = fileFilters != null ? fileFilters : ".xml;.zip;.dtd";
         String[] filters = filesFilter.split(";");
         if (filters.length > 0 ) {
             for (CrawlerURL url : allUrls) {
                 for (String filter: filters) {
                     if (url.getUrl().toLowerCase().contains(filter.toLowerCase())) {
-                        urlsThatNeedsVerification.add(url);
+                        if (!url.getUrl().contains("drs")) {
+                            urlsThatNeedsVerification.add(url);
+                        }
                         break;
                     }
                 }
@@ -352,7 +355,9 @@ public class DefaultCrawler implements Crawler {
 
         for (Url dbUrl : dbUrls) {
             urlsThatNeedsVerification.removeIf(urlTNeed -> urlTNeed.getUrl().equals(dbUrl.getValue())
-                    && dbUrl.getLastStatusCode() == HttpStatus.SC_OK && "Asset".equals(dbUrl.getType()));
+                    && dbUrl.getLastStatusCode() == HttpStatus.SC_OK && "Asset".equals(dbUrl.getType())
+                    && dbUrl.getType().equals(urlTNeed.getTitle())
+            );
         }
 
 
@@ -366,7 +371,7 @@ public class DefaultCrawler implements Crawler {
             String [] urlParts = testURL != null ? testURL.getUrl().split("/") : null;
             String fileName = urlParts != null ? urlParts[urlParts.length - 1] : "defaultFile";
             String downloadLocation = downloadFileLocation != null ? downloadFileLocation : "output";
-            tasks.add(new AssetResponseCallable(testURL.getUrl(), assetFetcher, requestHeaders, "", downloadLocation + "/" + fileName));
+            tasks.add(new AssetResponseCallable(testURL.getUrl(), testURL.getTitle(), assetFetcher, requestHeaders, "", Paths.get(downloadLocation, fileName).toString() ));
         }
 
         try {

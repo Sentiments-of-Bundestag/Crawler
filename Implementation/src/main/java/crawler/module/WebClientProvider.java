@@ -7,9 +7,9 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import crawler.core.CrawlerConfiguration;
-import crawler.util.Auth;
-import crawler.util.AuthUtil;
-import crawler.util.HTTPSFaker;
+import crawler.utils.Auth;
+import crawler.utils.AuthUtil;
+import crawler.utils.HTTPSFaker;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 

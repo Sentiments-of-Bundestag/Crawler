@@ -1,6 +1,5 @@
-package Utils;
+package crawler.utils;
 
-import models.Sitzung.Rede;
 import models.Sitzung.RedeTeil;
 
 import java.text.ParseException;
@@ -8,9 +7,8 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
-public class Utils {
+public class ParseUtilities {
     private static Date parseDate(String content, String pattern){
         if(content == null || content.isBlank()){
             return null;

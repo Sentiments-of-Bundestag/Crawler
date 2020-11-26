@@ -199,11 +199,11 @@ public class DynamicScheduler implements SchedulingConfigurer {
             if (crawlerResult != null) {
                 Set<Url> dbUrls = new LinkedHashSet<Url>();
                 for (AssetResponse assetResponse : crawlerResult.getLoadedAssets()) {
-                    dbUrls.add(new Url(crawlerResult.getStartPointHost(), assetResponse.getUrl(), new Date(System.currentTimeMillis()), assetResponse.getResponseCode(), assetResponse.getAssetPath(), assetResponse.getAssetSize(), "Asset"));
+                    dbUrls.add(new Url(crawlerResult.getStartPointHost(), assetResponse.getUrl(), assetResponse.getTitle(), new Date(System.currentTimeMillis()), assetResponse.getResponseCode(), assetResponse.getAssetPath(), assetResponse.getAssetSize(), "Asset"));
                 }
 
                 if (startUrl.isEmpty()) {
-                    dbUrls.add(new Url(crawlerResult.getStartPointHost(), crawlerResult.getStartPoint(), new Date(System.currentTimeMillis()), HttpStatus.SC_OK, "", -1, "Page"));
+                    dbUrls.add(new Url(crawlerResult.getStartPointHost(), crawlerResult.getStartPoint(), "", new Date(System.currentTimeMillis()), HttpStatus.SC_OK, "", -1, "Page"));
                 } else {
                     Url existingStartUrl = startUrl.get();
                     existingStartUrl.setLastRequestTime(new Date(System.currentTimeMillis()));
@@ -220,7 +220,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
                 }
 
                 // Save downloaded and parsed protokolls to DB
-                if (crawlerResult.getLoadedProtokolls() != null) {
+                if (crawlerResult.getLoadedProtokolls() != null && crawlerResult.getLoadedProtokolls().size() > 0) {
                     protokollRepository.saveAll(crawlerResult.getLoadedProtokolls());
                 }
 

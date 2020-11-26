@@ -7,6 +7,7 @@ package crawler.core.assets;
 public class AssetResponse {
 
     String url;
+    String title;
     String referer;
     String assetPath;
     int responseCode;
@@ -15,9 +16,10 @@ public class AssetResponse {
 
     public AssetResponse() {}
 
-    public AssetResponse(String url, String referer, String assetPath, int responseCode, long fetchTime, int assetSize) {
+    public AssetResponse(String url, String title, String referer, String assetPath, int responseCode, long fetchTime, int assetSize) {
         super();
         this.url = url;
+        this.title = title;
         this.assetPath = assetPath;
         this.responseCode = responseCode;
         this.fetchTime = fetchTime;
@@ -34,6 +36,9 @@ public class AssetResponse {
         return url;
     }
 
+    public String getTitle() {
+        return title;
+    }
     /**
      * The response code when the asset was fetched.
      *

@@ -14,11 +14,13 @@ public class AssetResponseCallable implements Callable<AssetResponse> {
     private final AssetFetcher getter;
     private final Map<String, String> requestHeaders;
     private final String url;
+    private final String title;
     private final String referer;
     private final String assetPath;
-    public AssetResponseCallable(String theUrl, AssetFetcher theGetter,
+    public AssetResponseCallable(String theUrl, String theTitle, AssetFetcher theGetter,
                                  Map<String, String> theRequestHeaders, String theReferer, String theAssetPath) {
         url = theUrl;
+        title = theTitle;
         getter = theGetter;
         requestHeaders = theRequestHeaders;
         referer = theReferer;
@@ -26,7 +28,7 @@ public class AssetResponseCallable implements Callable<AssetResponse> {
     }
 
     public AssetResponse call() throws InterruptedException {
-        return getter.getAsset(new CrawlerURL(url,referer), requestHeaders, assetPath);
+        return getter.getAsset(new CrawlerURL(url,referer,title), requestHeaders, assetPath);
     }
 
     @Override

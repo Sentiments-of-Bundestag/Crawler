@@ -9,7 +9,7 @@ import com.google.inject.Inject;
 import crawler.core.CrawlerURL;
 import crawler.core.HTMLPageResponse;
 import crawler.core.HTMLPageResponseFetcher;
-import crawler.util.StatusCode;
+import crawler.utils.StatusCode;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +68,7 @@ public class HTTPClientResponseFetcher implements HTMLPageResponseFetcher {
 
             final long fetchTime = System.currentTimeMillis() - start;
 
-            // this is a hack tio mnimize the amount of memory used
+            // this is a hack to minimize the amount of memory used
             // should make this configurable maybe
             // don't fetch headers for request that don't fetch the body and
             // response isn't 200

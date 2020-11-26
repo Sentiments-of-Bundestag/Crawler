@@ -2,6 +2,7 @@ package crawler.core.assets.impl;
 
 import crawler.core.assets.AssetResponse;
 import crawler.core.assets.AssetsParser;
+import crawler.core.assets.impl.xmlparser.XMLparser;
 import models.Person.Person;
 import models.Protokoll;
 
@@ -10,13 +11,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class DefaultAssetsParser implements AssetsParser {
+    private static final int DEFAULT_CONVERTIBLE_PROTOKOLL_VERSION = 19;
+    private static final String DEFAULT_FILE_DESCRIPTION_DTD = Paths.get("output", "dbtplenarprotokoll-data.dtd").toString();
+    private static final String DEFAULT_FILE_DESCRIPTION_DTD_COPY = Paths.get("output", "dbtplenarprotokoll.dtd").toString();
 
     public DefaultAssetsParser() {}
 
@@ -26,11 +33,19 @@ public class DefaultAssetsParser implements AssetsParser {
 
         for (AssetResponse assetResponse : assetResponses) {
             if (assetResponse.getAssetPath() != null) {
-                if (assetResponse.getAssetPath().endsWith("xml") && assetResponse.getAssetPath().contains("data")) {
-                    protokolls.add(getProtokoll(assetResponse.getAssetPath()));
-                } else if (assetResponse.getAssetPath().endsWith("zip") && assetResponse.getAssetPath().contains("data") && assetResponse.getAssetPath().contains("pp")) {
-                    Set<Protokoll> wahlPeriodeProtokolls = getWahlPeriodeProtokolls(assetResponse.getAssetPath());
+                if (assetResponse.getAssetPath().endsWith("xml") && assetResponse.getAssetPath().contains("data")
+                        && getProtokollVersion(assetResponse.getAssetPath()) >= DEFAULT_CONVERTIBLE_PROTOKOLL_VERSION) {
+                    protokolls.add(getProtokoll(assetResponse.getAssetPath(), stammdaten));
+                } else if (assetResponse.getAssetPath().endsWith("zip") && assetResponse.getAssetPath().contains("data") && assetResponse.getAssetPath().contains("pp")
+                        && getProtokollVersion(assetResponse.getAssetPath()) >= DEFAULT_CONVERTIBLE_PROTOKOLL_VERSION) {
+                    Set<Protokoll> wahlPeriodeProtokolls = getWahlPeriodeProtokolls(assetResponse.getAssetPath(), stammdaten);
                     protokolls.addAll(wahlPeriodeProtokolls);
+                    // delete unzipped folder after parsing
+                    if (deleteAfterParsing) {
+                        String[] filenameDestParts = assetResponse.getAssetPath().split("\\.");
+                        String destinationDir = filenameDestParts.length == 2 ? filenameDestParts[0] : null;
+                        delete(destinationDir);
+                    }
                 }
             }
         }
@@ -47,9 +62,17 @@ public class DefaultAssetsParser implements AssetsParser {
     public Set<Person> getStammdaten(AssetResponse assetResponse, boolean deleteAfterParsing) {
         Set<Person> stammdaten = getStammdatenFromZipFile(assetResponse.getAssetPath());
 
-        // delete asset after parsing
-        if (deleteAfterParsing) {
-            delete(assetResponse.getAssetPath());
+        if (stammdaten.size() > 0) {
+            String[] filenameDestParts = assetResponse.getAssetPath().split("\\.");
+            String destinationDir = filenameDestParts.length == 2 ? filenameDestParts[0] : null;
+
+            // delete asset after parsing
+            if (deleteAfterParsing) {
+                // delete unzipped folder
+                delete(destinationDir);
+                // delete downloaded zip file
+                delete(assetResponse.getAssetPath());
+            }
         }
 
         return stammdaten;
@@ -65,7 +88,7 @@ public class DefaultAssetsParser implements AssetsParser {
         Set<Person> stammdaten = new LinkedHashSet<>();
 
         // Unzip Stammdaten file
-        String[] filenameDestParts = filename.split(".");
+        String[] filenameDestParts = filename.split("\\.");
         String destinationDir = filenameDestParts.length == 2 ? filenameDestParts[0] : null;
         if (destinationDir != null && "zip".equals(filenameDestParts[1])) {
             unzip(filename, destinationDir);
@@ -88,8 +111,8 @@ public class DefaultAssetsParser implements AssetsParser {
      * @return list of persons
      */
     private static Set<Person> getStammdaten(String filename) {
-        Set<Person> stammdaten = new LinkedHashSet<>();
-        // Need to pe implemented (@Marlon)
+        XMLparser xmLparser = new XMLparser();
+        Set<Person> stammdaten = xmLparser.parseBaseData(filename);
 
         return stammdaten;
     }
@@ -99,9 +122,9 @@ public class DefaultAssetsParser implements AssetsParser {
      * @param filename path of the file
      * @return list of protokolls
      */
-    private static Protokoll getProtokoll(String filename) {
-        Protokoll protokoll = new Protokoll();
-        // Need to pe implemented (@Marlon)
+    private static Protokoll getProtokoll(String filename, Set<Person> stammdaten) {
+        XMLparser xmLparser = new XMLparser(stammdaten);
+        Protokoll protokoll = xmLparser.parseProtocol(filename);
 
         return protokoll;
     }
@@ -111,7 +134,7 @@ public class DefaultAssetsParser implements AssetsParser {
      * @param filename path of the file
      * @return list of protokolls
      */
-    private static Set<Protokoll> getWahlPeriodeProtokolls(String filename) {
+    private static Set<Protokoll> getWahlPeriodeProtokolls(String filename, Set<Person> stammdaten) {
         Set<Protokoll> protokolls = new LinkedHashSet<>();
 
         // Unzip the file (wahlperiode should always be a zip file)
@@ -123,7 +146,7 @@ public class DefaultAssetsParser implements AssetsParser {
             final File file = new File(destinationDir);
             for (final File child : Objects.requireNonNull(file.listFiles())) {
                 if(extensionFilter.accept(child)) {
-                    protokolls.add(getProtokoll(child.getPath()));
+                    protokolls.add(getProtokoll(child.getPath(), stammdaten));
                 }
             }
         }
@@ -180,6 +203,9 @@ public class DefaultAssetsParser implements AssetsParser {
     private static void cleanDownloadedAssets(Set<AssetResponse> assetResponses) {
         for (AssetResponse assetResponse : assetResponses) {
             delete(assetResponse.getAssetPath());
+            if (assetResponse.getAssetPath().equals(DEFAULT_FILE_DESCRIPTION_DTD)) {
+                delete(DEFAULT_FILE_DESCRIPTION_DTD_COPY);
+            }
         }
     }
 
@@ -214,5 +240,33 @@ public class DefaultAssetsParser implements AssetsParser {
         if(!file.delete()){
             throw new IOException("File cannot be deleted: " + file);
         }
+    }
+
+    private static int getProtokollVersion(String filename) {
+        String[] filenameDestParts = filename.split("\\.");
+        String filenameFull = filenameDestParts.length == 2 ? filenameDestParts[0] : null;
+        String[] filenameFullParts = splitPath(filenameFull);
+        String extension = filenameDestParts.length == 2 ? filenameDestParts[1] : null;
+        String[] filenameLastParts = filenameFullParts[filenameFullParts.length - 1].split("-");
+        String filenameLastPart1 = filenameLastParts[0];
+        switch (extension) {
+            case "xml":
+                filenameLastPart1 = filenameLastPart1.substring(0, filenameLastPart1.length() - 3);
+                break;
+            case "zip":
+                filenameLastPart1 = filenameLastPart1.substring(2);
+                break;
+            default:
+                filenameLastPart1 = "0";
+                break;
+        }
+
+        return Integer.parseInt(filenameLastPart1);
+    }
+
+    public static String[] splitPath(String pathString) {
+        Path path = Paths.get(pathString);
+        return StreamSupport.stream(path.spliterator(), false).map(Path::toString)
+                .toArray(String[]::new);
     }
 }

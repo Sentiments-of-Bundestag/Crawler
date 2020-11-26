@@ -1,4 +1,4 @@
-package crawler.util;
+package crawler.utils;
 
 public class Auth {
 

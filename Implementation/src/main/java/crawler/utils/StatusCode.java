@@ -1,4 +1,4 @@
-package crawler.util;
+package crawler.utils;
 
 import org.apache.http.HttpStatus;
 

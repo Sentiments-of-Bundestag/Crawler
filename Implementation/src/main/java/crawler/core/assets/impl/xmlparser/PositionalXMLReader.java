@@ -1,17 +1,9 @@
-package xmlparser;
+package crawler.core.assets.impl.xmlparser;
 
 // PositionalXMLReader.java
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Stack;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -20,8 +12,13 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.parsers.*;
+import java.io.IOException;
+import java.util.Stack;
+
 public class PositionalXMLReader {
     final static String LINE_NUMBER_KEY_NAME = "lineNumber";
+    private static final Logger LOGGER = LoggerFactory.getLogger(PositionalXMLReader.class);
 
     public static Document readXML(String path) throws IOException, SAXException {
         final Document doc;
@@ -33,6 +30,7 @@ public class PositionalXMLReader {
             final DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
             doc = docBuilder.newDocument();
         } catch (final ParserConfigurationException e) {
+            LOGGER.error("Can't create SAX parser / DOM builder.", e);
             throw new RuntimeException("Can't create SAX parser / DOM builder.", e);
         }
 

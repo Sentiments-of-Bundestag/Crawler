@@ -1,20 +1,22 @@
 package crawler.core.assets.impl;
 
 import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebResponse;
 import com.google.inject.Inject;
 import crawler.core.CrawlerURL;
 import crawler.core.assets.AssetFetcher;
 import crawler.core.assets.AssetResponse;
-import crawler.util.StatusCode;
+import crawler.utils.StatusCode;
 import org.apache.http.HttpStatus;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Map;
 
 public class HTTPClientAssetFetcher implements AssetFetcher {
 
+    private static final String DEFAULT_FILE_DESCRIPTION_DTD = Paths.get("output", "dbtplenarprotokoll-data.dtd").toString();
+    private static final String DEFAULT_FILE_DESCRIPTION_DTD_COPY = Paths.get("output", "dbtplenarprotokoll.dtd").toString();
     private final WebClient webClient;
     private int assetSizeInByte;
 
@@ -37,9 +39,9 @@ public class HTTPClientAssetFetcher implements AssetFetcher {
         try{
             assetSizeInByte = downloadUsingStream(url.getUrl(), assetPath);
             final long time = System.currentTimeMillis() - start;
-            return new AssetResponse(url.getUrl(), url.getReferer(), assetPath, HttpStatus.SC_OK, time, assetSizeInByte * 1024 / 1000);
+            return new AssetResponse(url.getUrl(), url.getReferer(), url.getTitle(), assetPath, HttpStatus.SC_OK, time, assetSizeInByte * 1024 / 1000);
         } catch (IOException e){
-            return new AssetResponse(url.getUrl(), url.getReferer(), assetPath, StatusCode.SC_SERVER_RESPONSE_UNKNOWN.getCode(), -1, assetSizeInByte);
+            return new AssetResponse(url.getUrl(), url.getReferer(), url.getTitle(), assetPath, StatusCode.SC_SERVER_RESPONSE_UNKNOWN.getCode(), -1, assetSizeInByte);
         }
     }
 
@@ -58,50 +60,29 @@ public class HTTPClientAssetFetcher implements AssetFetcher {
         fis.close();
         bis.close();
 
-        return byteSize;
-    }
-
-    private static int getFileResponse(WebResponse response, String fileName){
-        int byteSize = 0;
-        InputStream inputStream = null;
-
-        // write the inputStream to a FileOutputStream
-        OutputStream outputStream = null;
-
-        try {
-            inputStream = response.getContentAsStream();
-
-            // write the inputStream to a FileOutputStream
-            outputStream = new FileOutputStream(new File(fileName));
-
-            int read = 0;
-            byte[] bytes = new byte[1024];
-
-            while ((read = inputStream.read(bytes)) != -1) {
-                outputStream.write(bytes, 0, read);
-                byteSize++;
-            }
-            System.out.println("Done!");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (outputStream != null) {
-                try {
-                    // outputStream.flush();
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        if (file.equals(DEFAULT_FILE_DESCRIPTION_DTD)) {
+            copyFileUsingStream(file, DEFAULT_FILE_DESCRIPTION_DTD_COPY);
         }
 
         return byteSize;
+    }
+
+    private static void copyFileUsingStream(String source, String dest) throws IOException {
+        InputStream is = null;
+        OutputStream os = null;
+        try {
+            is = new FileInputStream(source);
+            os = new FileOutputStream(dest);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+        } finally {
+            assert is != null;
+            is.close();
+            assert os != null;
+            os.close();
+        }
     }
 }

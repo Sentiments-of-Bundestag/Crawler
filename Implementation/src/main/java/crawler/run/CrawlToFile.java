@@ -10,7 +10,7 @@ import crawler.core.CrawlerResult;
 import crawler.core.CrawlerURL;
 import crawler.core.HTMLPageResponse;
 import crawler.module.CrawlModule;
-import crawler.util.StatusCode;
+import crawler.utils.StatusCode;
 import models.Crawler.Notification;
 import models.Crawler.Url;
 import models.Person.Person;

@@ -1,13 +1,16 @@
-package xmlparser;
+package crawler.core.assets.impl.xmlparser;
 
+import crawler.utils.ParseUtilities;
 import models.Person.Fraktion;
-import Utils.Utils;
 import models.Person.Person;
 import models.Protokoll;
 import models.Sitzung.*;
-import models.Sitzung.AblaufspunktTyp;
-import models.Sitzung.RedeTeilTyp;
-import org.w3c.dom.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.util.*;
@@ -61,24 +64,29 @@ public class XMLparser {
     static final String SITZUNG_ISSN_TAG =  "issn";
     static final String SITZUNG_DATUM_TAG = "sitzung-datum";
     static final String WAHLPERIODE_PROTOCOL_TAG = "wahlperiode";
+    private static final Logger LOGGER = LoggerFactory.getLogger(XMLparser.class);
 
     private File file;
     private Document doc;
-    private final List<Person> personBaseData = new ArrayList<>();
-    private final List<Person> rednerList = new ArrayList<>();
+    private Set<Person> personBaseData = new LinkedHashSet<>();
+    private Set<Person> rednerList = new LinkedHashSet<>();
 
     public XMLparser() {
+    }
+
+    public XMLparser(Set<Person> personBaseData) {
+        this.personBaseData = personBaseData;
     }
 
     //TODO: add full NULL-Handling
 
 
-    public List<Person> parseBaseData(String path) {
+    public Set<Person> parseBaseData(String path) {
         //create Doc from file
         createDoc(path);
 
         if (doc == null) {
-            System.out.println("Document wasn't created");
+            LOGGER.error("Document wasn't created");
             return null;
         }
         //get MDB objects from xml base data
@@ -98,7 +106,7 @@ public class XMLparser {
                 List<Fraktion> fraktionen = getFraktionen(mdbElement);
                 //create person from collected properties
                 Person person = new Person(id, personProperties.get(AKAD_TITEL_TAG), personProperties.get(VORNAME_TAG), personProperties.get(NACHNAME_TAG),
-                        bioDataProperties.get(BERUF_TAG), bioDataProperties.get(GESCHLECHT_TAG), Utils.stringToDate(bioDataProperties.get(GEBURTSDATUM_TAG)), bioDataProperties.get(FAMILIENSTAND_TAG), bioDataProperties.get(RELIGION_TAG), bioDataProperties.get(GEBURTSORT_TAG), fraktionen);
+                        bioDataProperties.get(BERUF_TAG), bioDataProperties.get(GESCHLECHT_TAG), ParseUtilities.stringToDate(bioDataProperties.get(GEBURTSDATUM_TAG)), bioDataProperties.get(FAMILIENSTAND_TAG), bioDataProperties.get(RELIGION_TAG), bioDataProperties.get(GEBURTSORT_TAG), fraktionen);
                 personBaseData.add(person);
             }
 
@@ -110,7 +118,7 @@ public class XMLparser {
         createDoc(path);
 
         if (doc == null) {
-            System.out.println("Document wasn't created");
+            LOGGER.error("Document wasn't created");
             return null;
         }
 
@@ -154,10 +162,10 @@ public class XMLparser {
         String sitzungID = dbtplenarprotokoll.getAttribute(SITZUNG_NR_TAG);
 
         //get sitzung start time
-        Date sitzungStart = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_START_TIME_TAG));
+        Date sitzungStart = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_START_TIME_TAG));
 
         //get sitzung end time
-        Date sitzungEnd = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_ENDE_TIME_TAG));
+        Date sitzungEnd = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_ENDE_TIME_TAG));
 
         Sitzungsverlauf sitzung = new Sitzungsverlauf(Integer.parseInt(sitzungID), sitzungStart, sitzungEnd, ablaufspunkte);
 
@@ -165,10 +173,10 @@ public class XMLparser {
         String ort = dbtplenarprotokoll.getAttribute(SITZUNG_ORT_TAG);
 
         //get nächste Sitzung Datum
-        Date naechsteSitzung = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_NAECHSTE_DATUM));
+        Date naechsteSitzung = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_NAECHSTE_DATUM));
 
         //get date of sitzung
-        Date sitzungDatum = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_DATUM_TAG));
+        Date sitzungDatum = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_DATUM_TAG));
 
         //get issn
         String issn = dbtplenarprotokoll.getAttribute(SITZUNG_ISSN_TAG);
@@ -204,7 +212,7 @@ public class XMLparser {
     private HashMap<Integer, String> getReden(Node node) {
         HashMap<Integer, String> result = new HashMap<>();
         if (node == null) {
-            System.out.println("getReden: node is null!");
+            LOGGER.error("getReden: node is null!");
             return result;
         }
         if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -226,7 +234,7 @@ public class XMLparser {
     }
 
     private List<Rede> assignReden(List<RedeTeil> redeTeile, HashMap<Integer, String> rednerStartpoints, HashMap<Integer, String> redenIdLine) {
-        Integer[] arrStartPoints = Utils.sort(rednerStartpoints.keySet().toArray(new Integer[0]), 0, rednerStartpoints.size() - 1);
+        Integer[] arrStartPoints = ParseUtilities.sort(rednerStartpoints.keySet().toArray(new Integer[0]), 0, rednerStartpoints.size() - 1);
         List<Rede> reden = new ArrayList<>();
 
         for (int i = 0; i < arrStartPoints.length; i++) {
@@ -256,7 +264,7 @@ public class XMLparser {
             } catch (NumberFormatException e) {
                 id = resolvePersonData(rednerString);
                 if (id == -1) {
-                    System.out.println("Person with the data: " + rednerString + " couldn't be resolved");
+                    LOGGER.error("Person with the data: " + rednerString + " couldn't be resolved");
                 }
             }
 
@@ -310,7 +318,7 @@ public class XMLparser {
     private HashMap<Integer, String> getRedner(Node node) {
         HashMap<Integer, String> result = new HashMap<>();
         if (node == null) {
-            System.out.println("getRedner: node is null!");
+            LOGGER.error("getRedner: node is null!");
             return result;
         }
         if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -385,13 +393,13 @@ public class XMLparser {
 
         }
 
-        return Utils.listSort(redeTeile);
+        return ParseUtilities.listSort(redeTeile);
     }
 
     private boolean checkAttribute(Element element, String attributeName, String className) {
         String redeTeilAttribute = element.getAttribute(attributeName);
         if (redeTeilAttribute == null) {
-            System.out.println("checkAttribute: attributeName: " + attributeName + "doesn't exist!");
+            LOGGER.error("checkAttribute: attributeName: \" + attributeName + \"doesn't exist!");
             return false;
         }
         return redeTeilAttribute.equals(className);
@@ -461,15 +469,15 @@ public class XMLparser {
 
     private void createDoc(String path) {
         if (path == null || path.equals("")) {
-            System.out.println("No file name was given");
+            LOGGER.error("No file name was given");
             return;
         }
         try {
-            file = new File(new File("").getAbsolutePath() + path);
-            System.out.println(file.getAbsolutePath());
+            file = new File(path);
+            LOGGER.info(file.getAbsolutePath());
 
             if (!file.exists()) {
-                System.out.println("File doesn't exist");
+                LOGGER.error("File doesn't exist");
                 return;
             }
 
@@ -482,7 +490,7 @@ public class XMLparser {
 
 
         } catch (Exception e) {
-            System.out.println(e.toString());
+            LOGGER.error(e.toString());
         }
     }
 
@@ -531,7 +539,7 @@ public class XMLparser {
                         String institutionArt = ((Element) institutionNode).getElementsByTagName(INS_ART_TAG).item(0).getTextContent();
                         if (institutionArt.equals(INSART_FRAKTION_TAG)) {
                             String institutionBeschreibung = ((Element) institutionNode).getElementsByTagName(INS_LANG_TAG).item(0).getTextContent();
-                            Fraktion fraktion = new Fraktion(null, institutionBeschreibung, Utils.stringToDate(eintritt), Utils.stringToDate(austritt));
+                            Fraktion fraktion = new Fraktion(null, institutionBeschreibung, ParseUtilities.stringToDate(eintritt), ParseUtilities.stringToDate(austritt));
                             fraktionen.add(fraktion);
                         }
                     }
@@ -557,6 +565,4 @@ public class XMLparser {
         }
         return nameProperties;
     }
-
-
 }

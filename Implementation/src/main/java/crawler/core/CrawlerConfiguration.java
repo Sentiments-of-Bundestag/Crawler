@@ -1,6 +1,6 @@
 package crawler.core;
 
-import crawler.util.HeaderUtil;
+import crawler.utils.HeaderUtil;
 
 import java.util.Collections;
 import java.util.Map;

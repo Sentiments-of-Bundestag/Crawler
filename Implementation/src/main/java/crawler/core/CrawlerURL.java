@@ -14,6 +14,7 @@ public class CrawlerURL {
     private final String url;
     private final URI uri;
     private final String host;
+    private final String title;
     private final String referer;
     private final boolean isWrongSyntax;
 
@@ -23,7 +24,7 @@ public class CrawlerURL {
      * @param theUrl to the asset
      */
     public CrawlerURL(String theUrl) {
-        this(theUrl, "");
+        this(theUrl, "", "");
     }
 
     /**
@@ -32,9 +33,10 @@ public class CrawlerURL {
      * @param theUrl to the asset.
      * @param theUrlReferer the url to the referer.
      */
-    public CrawlerURL(String theUrl, String theUrlReferer) {
+    public CrawlerURL(String theUrl, String theUrlReferer, String theTitle) {
         url = theUrl;
         referer = theUrlReferer;
+        title = theTitle != null ? theTitle : "";
         URI tmpURI = null;
         try {
             URL u = null;
@@ -80,6 +82,10 @@ public class CrawlerURL {
 
     public String getUrl() {
         return url;
+    }
+
+    public String getTitle() {
+        return title;
     }
 
     @Override

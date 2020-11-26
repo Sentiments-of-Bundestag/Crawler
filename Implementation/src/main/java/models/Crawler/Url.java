@@ -16,6 +16,8 @@ public class Url {
 
     String host;
 
+    String title;
+
     Date lastRequestTime;
 
     int lastStatusCode;
@@ -33,6 +35,7 @@ public class Url {
             URL httURL = new URL(url);
             this.host = httURL.getHost();
             this.value = url;
+            this.title = "";
             this.lastRequestTime = null;
             this.lastStatusCode = -1;
             this.downloadedAssetSize = -1;
@@ -43,9 +46,10 @@ public class Url {
         }
     }
 
-    public Url(String host, String value, Date lastRequestTime, int lastStatusCode, String downloadedAsset, int downloadedAssetSize, String type) {
+    public Url(String host, String value, String title, Date lastRequestTime, int lastStatusCode, String downloadedAsset, int downloadedAssetSize, String type) {
         this.host = host;
         this.value = value;
+        this.title = title;
         this.lastRequestTime = lastRequestTime;
         this.lastStatusCode = lastStatusCode;
         this.downloadedAsset = downloadedAsset;
@@ -67,6 +71,14 @@ public class Url {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public Date getLastRequestTime() {

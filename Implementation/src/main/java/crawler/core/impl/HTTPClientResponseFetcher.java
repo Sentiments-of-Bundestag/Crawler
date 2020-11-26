@@ -9,7 +9,7 @@ import com.google.inject.Inject;
 import crawler.core.CrawlerURL;
 import crawler.core.HTMLPageResponse;
 import crawler.core.HTMLPageResponseFetcher;
-import crawler.util.StatusCode;
+import crawler.utils.StatusCode;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

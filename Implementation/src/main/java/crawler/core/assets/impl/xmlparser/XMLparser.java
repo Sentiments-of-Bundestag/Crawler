@@ -1,7 +1,7 @@
-package xmlparser;
+package crawler.core.assets.impl.xmlparser;
 
 import models.Person.Fraktion;
-import Utils.Utils;
+import crawler.utils.ParseUtilities;
 import models.Person.Person;
 import models.Protokoll;
 import models.Sitzung.*;
@@ -64,16 +64,20 @@ public class XMLparser {
 
     private File file;
     private Document doc;
-    private final List<Person> personBaseData = new ArrayList<>();
-    private final List<Person> rednerList = new ArrayList<>();
+    private Set<Person> personBaseData = new LinkedHashSet<>();
+    private Set<Person> rednerList = new LinkedHashSet<>();
 
     public XMLparser() {
+    }
+
+    public XMLparser(Set<Person> personBaseData) {
+        this.personBaseData = personBaseData;
     }
 
     //TODO: add full NULL-Handling
 
 
-    public List<Person> parseBaseData(String path) {
+    public Set<Person> parseBaseData(String path) {
         //create Doc from file
         createDoc(path);
 
@@ -98,7 +102,7 @@ public class XMLparser {
                 List<Fraktion> fraktionen = getFraktionen(mdbElement);
                 //create person from collected properties
                 Person person = new Person(id, personProperties.get(AKAD_TITEL_TAG), personProperties.get(VORNAME_TAG), personProperties.get(NACHNAME_TAG),
-                        bioDataProperties.get(BERUF_TAG), bioDataProperties.get(GESCHLECHT_TAG), Utils.stringToDate(bioDataProperties.get(GEBURTSDATUM_TAG)), bioDataProperties.get(FAMILIENSTAND_TAG), bioDataProperties.get(RELIGION_TAG), bioDataProperties.get(GEBURTSORT_TAG), fraktionen);
+                        bioDataProperties.get(BERUF_TAG), bioDataProperties.get(GESCHLECHT_TAG), ParseUtilities.stringToDate(bioDataProperties.get(GEBURTSDATUM_TAG)), bioDataProperties.get(FAMILIENSTAND_TAG), bioDataProperties.get(RELIGION_TAG), bioDataProperties.get(GEBURTSORT_TAG), fraktionen);
                 personBaseData.add(person);
             }
 
@@ -154,10 +158,10 @@ public class XMLparser {
         String sitzungID = dbtplenarprotokoll.getAttribute(SITZUNG_NR_TAG);
 
         //get sitzung start time
-        Date sitzungStart = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_START_TIME_TAG));
+        Date sitzungStart = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_START_TIME_TAG));
 
         //get sitzung end time
-        Date sitzungEnd = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_ENDE_TIME_TAG));
+        Date sitzungEnd = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_ENDE_TIME_TAG));
 
         Sitzungsverlauf sitzung = new Sitzungsverlauf(Integer.parseInt(sitzungID), sitzungStart, sitzungEnd, ablaufspunkte);
 
@@ -165,10 +169,10 @@ public class XMLparser {
         String ort = dbtplenarprotokoll.getAttribute(SITZUNG_ORT_TAG);
 
         //get nächste Sitzung Datum
-        Date naechsteSitzung = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_NAECHSTE_DATUM));
+        Date naechsteSitzung = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_NAECHSTE_DATUM));
 
         //get date of sitzung
-        Date sitzungDatum = Utils.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_DATUM_TAG));
+        Date sitzungDatum = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_DATUM_TAG));
 
         //get issn
         String issn = dbtplenarprotokoll.getAttribute(SITZUNG_ISSN_TAG);
@@ -226,7 +230,7 @@ public class XMLparser {
     }
 
     private List<Rede> assignReden(List<RedeTeil> redeTeile, HashMap<Integer, String> rednerStartpoints, HashMap<Integer, String> redenIdLine) {
-        Integer[] arrStartPoints = Utils.sort(rednerStartpoints.keySet().toArray(new Integer[0]), 0, rednerStartpoints.size() - 1);
+        Integer[] arrStartPoints = ParseUtilities.sort(rednerStartpoints.keySet().toArray(new Integer[0]), 0, rednerStartpoints.size() - 1);
         List<Rede> reden = new ArrayList<>();
 
         for (int i = 0; i < arrStartPoints.length; i++) {
@@ -385,7 +389,7 @@ public class XMLparser {
 
         }
 
-        return Utils.listSort(redeTeile);
+        return ParseUtilities.listSort(redeTeile);
     }
 
     private boolean checkAttribute(Element element, String attributeName, String className) {
@@ -465,7 +469,7 @@ public class XMLparser {
             return;
         }
         try {
-            file = new File(new File("").getAbsolutePath() + path);
+            file = new File(path);
             System.out.println(file.getAbsolutePath());
 
             if (!file.exists()) {
@@ -531,7 +535,7 @@ public class XMLparser {
                         String institutionArt = ((Element) institutionNode).getElementsByTagName(INS_ART_TAG).item(0).getTextContent();
                         if (institutionArt.equals(INSART_FRAKTION_TAG)) {
                             String institutionBeschreibung = ((Element) institutionNode).getElementsByTagName(INS_LANG_TAG).item(0).getTextContent();
-                            Fraktion fraktion = new Fraktion(null, institutionBeschreibung, Utils.stringToDate(eintritt), Utils.stringToDate(austritt));
+                            Fraktion fraktion = new Fraktion(null, institutionBeschreibung, ParseUtilities.stringToDate(eintritt), ParseUtilities.stringToDate(austritt));
                             fraktionen.add(fraktion);
                         }
                     }

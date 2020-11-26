@@ -6,8 +6,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Document
 public class Protokoll {
@@ -17,13 +17,13 @@ public class Protokoll {
     Date naechsteSitzung;
     Date sitzungDatum;
     String issn;
-    List<Person> rednerListe;
+    Set<Person> rednerListe;
     Sitzungsverlauf sitzungsverlauf;
     boolean notified;
 
     public Protokoll() {}
 
-    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, List<Person> rednerListe, Sitzungsverlauf sitzungsverlauf) {
+    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, Set<Person> rednerListe, Sitzungsverlauf sitzungsverlauf) {
         this.id = id;
         this.ort = ort;
         this.naechsteSitzung = naechsteSitzung;
@@ -37,7 +37,7 @@ public class Protokoll {
         return sitzungsverlauf;
     }
 
-    public List<Person> getRednerListe() {
+    public Set<Person> getRednerListe() {
         return rednerListe;
     }
 
@@ -84,7 +84,7 @@ public class Protokoll {
         this.issn = issn;
     }
 
-    public void setRednerListe(List<Person> rednerListe) {
+    public void setRednerListe(Set<Person> rednerListe) {
         this.rednerListe = rednerListe;
     }
 

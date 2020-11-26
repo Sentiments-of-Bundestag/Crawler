@@ -6,7 +6,7 @@ import com.google.inject.Inject;
 import crawler.core.CrawlerURL;
 import crawler.core.HTMLPageResponse;
 import crawler.core.JsonRequestProcessor;
-import crawler.util.StatusCode;
+import crawler.utils.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

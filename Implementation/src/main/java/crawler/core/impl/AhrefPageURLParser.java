@@ -65,10 +65,10 @@ public class AhrefPageURLParser implements PageURLParser {
                 continue;
 
             else if (IFRAME.equals(src.tag().getName()))
-                urls.add(new CrawlerURL(src.attr(attributeKey), url));
+                urls.add(new CrawlerURL(src.attr(attributeKey), url, src.attr("title")));
 
             else
-                urls.add(new CrawlerURL(src.attr(attributeKey), url));
+                urls.add(new CrawlerURL(src.attr(attributeKey), url, src.attr("title")));
 
         }
 

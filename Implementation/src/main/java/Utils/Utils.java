@@ -11,17 +11,27 @@ import java.util.List;
 import java.util.zip.DataFormatException;
 
 public class Utils {
-    public static Date StringToDate(String s){
-        if(s == null || s.isBlank()){
+    private static Date parseDate(String content, String pattern){
+        if(content == null || content.isBlank()){
             return null;
         }
         try{
-            return new SimpleDateFormat("dd.MM.yyyy").parse(s);
+            return new SimpleDateFormat(pattern).parse(content);
         }
         catch(ParseException e){
-            System.out.println(e.toString());
             return null;
         }
+    }
+
+    public static Date stringToDate(String s){
+        if(s == null || s.isBlank()){
+            return null;
+        }
+        Date result = parseDate(s, "dd.MM.yyyy");
+        if(result == null){
+            result = parseDate(s, "HH:mm");
+        }
+        return result;
     }
 
     private static int partition(Integer[] arr, int low, int high)

@@ -17,24 +17,21 @@ public class Protokoll {
     Date naechsteSitzung;
     Date sitzungDatum;
     String issn;
-    String berichtart;
     List<Person> rednerListe;
     Sitzungsverlauf sitzungsverlauf;
     boolean notified;
 
     public Protokoll() {}
 
-    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, String berichtart, List<Person> rednerListe, Sitzungsverlauf sitzungsverlauf, boolean notified) {
+    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, List<Person> rednerListe, Sitzungsverlauf sitzungsverlauf) {
         this.id = id;
         this.ort = ort;
         this.naechsteSitzung = naechsteSitzung;
         this.sitzungDatum = sitzungDatum;
         this.issn = issn;
-        this.berichtart = berichtart;
         this.rednerListe = rednerListe;
         this.sitzungsverlauf = sitzungsverlauf;
-        this.notified = notified;
-    }
+            }
 
     public Sitzungsverlauf getSitzungsverlauf() {
         return sitzungsverlauf;
@@ -64,9 +61,6 @@ public class Protokoll {
         return issn;
     }
 
-    public String getBerichtart() {
-        return berichtart;
-    }
 
     public boolean getNotified() { return notified; }
 
@@ -88,10 +82,6 @@ public class Protokoll {
 
     public void setIssn(String issn) {
         this.issn = issn;
-    }
-
-    public void setBerichtart(String berichtart) {
-        this.berichtart = berichtart;
     }
 
     public void setRednerListe(List<Person> rednerListe) {
@@ -120,14 +110,13 @@ public class Protokoll {
                 naechsteSitzung.equals(protokoll.naechsteSitzung) &&
                 sitzungDatum.equals(protokoll.sitzungDatum) &&
                 issn.equals(protokoll.issn) &&
-                berichtart.equals(protokoll.berichtart) &&
                 rednerListe.equals(protokoll.rednerListe) &&
                 sitzungsverlauf.equals(protokoll.sitzungsverlauf);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, ort, naechsteSitzung, sitzungDatum, issn, berichtart, rednerListe, sitzungsverlauf);
+        return Objects.hash(id, ort, naechsteSitzung, sitzungDatum, issn, rednerListe, sitzungsverlauf);
     }
 
     @Override
@@ -138,7 +127,6 @@ public class Protokoll {
                 ", naechsteSitzung=" + naechsteSitzung +
                 ", sitzungDatum=" + sitzungDatum +
                 ", issn='" + issn + '\'' +
-                ", berichtart='" + berichtart + '\'' +
                 ", rednerListe=" + rednerListe +
                 ", sitzungsverlauf=" + sitzungsverlauf +
                 '}';

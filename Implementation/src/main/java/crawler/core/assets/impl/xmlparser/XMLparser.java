@@ -1,13 +1,16 @@
 package crawler.core.assets.impl.xmlparser;
 
-import models.Person.Fraktion;
 import crawler.utils.ParseUtilities;
+import models.Person.Fraktion;
 import models.Person.Person;
 import models.Protokoll;
 import models.Sitzung.*;
-import models.Sitzung.AblaufspunktTyp;
-import models.Sitzung.RedeTeilTyp;
-import org.w3c.dom.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.util.*;
@@ -61,6 +64,7 @@ public class XMLparser {
     static final String SITZUNG_ISSN_TAG =  "issn";
     static final String SITZUNG_DATUM_TAG = "sitzung-datum";
     static final String WAHLPERIODE_PROTOCOL_TAG = "wahlperiode";
+    private static final Logger LOGGER = LoggerFactory.getLogger(XMLparser.class);
 
     private File file;
     private Document doc;
@@ -82,7 +86,7 @@ public class XMLparser {
         createDoc(path);
 
         if (doc == null) {
-            System.out.println("Document wasn't created");
+            LOGGER.error("Document wasn't created");
             return null;
         }
         //get MDB objects from xml base data
@@ -114,7 +118,7 @@ public class XMLparser {
         createDoc(path);
 
         if (doc == null) {
-            System.out.println("Document wasn't created");
+            LOGGER.error("Document wasn't created");
             return null;
         }
 
@@ -208,7 +212,7 @@ public class XMLparser {
     private HashMap<Integer, String> getReden(Node node) {
         HashMap<Integer, String> result = new HashMap<>();
         if (node == null) {
-            System.out.println("getReden: node is null!");
+            LOGGER.error("getReden: node is null!");
             return result;
         }
         if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -260,7 +264,7 @@ public class XMLparser {
             } catch (NumberFormatException e) {
                 id = resolvePersonData(rednerString);
                 if (id == -1) {
-                    System.out.println("Person with the data: " + rednerString + " couldn't be resolved");
+                    LOGGER.error("Person with the data: " + rednerString + " couldn't be resolved");
                 }
             }
 
@@ -314,7 +318,7 @@ public class XMLparser {
     private HashMap<Integer, String> getRedner(Node node) {
         HashMap<Integer, String> result = new HashMap<>();
         if (node == null) {
-            System.out.println("getRedner: node is null!");
+            LOGGER.error("getRedner: node is null!");
             return result;
         }
         if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -395,7 +399,7 @@ public class XMLparser {
     private boolean checkAttribute(Element element, String attributeName, String className) {
         String redeTeilAttribute = element.getAttribute(attributeName);
         if (redeTeilAttribute == null) {
-            System.out.println("checkAttribute: attributeName: " + attributeName + "doesn't exist!");
+            LOGGER.error("checkAttribute: attributeName: \" + attributeName + \"doesn't exist!");
             return false;
         }
         return redeTeilAttribute.equals(className);
@@ -465,15 +469,15 @@ public class XMLparser {
 
     private void createDoc(String path) {
         if (path == null || path.equals("")) {
-            System.out.println("No file name was given");
+            LOGGER.error("No file name was given");
             return;
         }
         try {
             file = new File(path);
-            System.out.println(file.getAbsolutePath());
+            LOGGER.info(file.getAbsolutePath());
 
             if (!file.exists()) {
-                System.out.println("File doesn't exist");
+                LOGGER.error("File doesn't exist");
                 return;
             }
 
@@ -486,7 +490,7 @@ public class XMLparser {
 
 
         } catch (Exception e) {
-            System.out.println(e.toString());
+            LOGGER.error(e.toString());
         }
     }
 
@@ -561,6 +565,4 @@ public class XMLparser {
         }
         return nameProperties;
     }
-
-
 }

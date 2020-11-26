@@ -68,7 +68,7 @@ public class HTTPClientResponseFetcher implements HTMLPageResponseFetcher {
 
             final long fetchTime = System.currentTimeMillis() - start;
 
-            // this is a hack tio mnimize the amount of memory used
+            // this is a hack to minimize the amount of memory used
             // should make this configurable maybe
             // don't fetch headers for request that don't fetch the body and
             // response isn't 200

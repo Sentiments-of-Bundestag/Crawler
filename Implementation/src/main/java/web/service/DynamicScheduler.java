@@ -266,10 +266,6 @@ public class DynamicScheduler implements SchedulingConfigurer {
         LOGGER.info("scheduleFixed: Next execution time of this will always be {} seconds", frequency);
     }
 
-    public void scheduledDatabase(String time) {
-        LOGGER.info("scheduledDatabase: Next execution time of this will be taken from DB -> {}", time);
-    }
-
     // Only reason this method gets the cron as parameter is for debug purposes.
     public void scheduleCron(String cron) {
 

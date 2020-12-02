@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 
 @RestController
+@RequestMapping(value = "/")
 public class TaskController {
 
     DynamicScheduler TaskScheduler;
@@ -21,7 +22,7 @@ public class TaskController {
         this.TaskScheduler = TaskScheduler;
     }
 
-    @GetMapping(value = "/", produces = "application/json")
+    @GetMapping(value = "", produces = "application/json")
     public ControllerResponse index() {
         ControllerResponse controllerResponse = new ControllerResponse();
         controllerResponse.setTitle("Hello welcome the the Crawl-Manager!");

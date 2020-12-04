@@ -130,7 +130,6 @@ public class WebClientProvider implements Provider<WebClient> {
         }
 
         if (auths.size() > 0) {
-
             for (Auth authObject : auths) {
                 client.getCredentialsProvider().setCredentials(
                         new AuthScope(authObject.getScope(), authObject.getPort()),

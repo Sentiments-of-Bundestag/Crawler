@@ -356,7 +356,7 @@ public class DefaultCrawler implements Crawler {
         for (Url dbUrl : dbUrls) {
             urlsThatNeedsVerification.removeIf(urlTNeed -> urlTNeed.getUrl().equals(dbUrl.getValue())
                     && dbUrl.getLastStatusCode() == HttpStatus.SC_OK && "Asset".equals(dbUrl.getType())
-                    && dbUrl.getType().equals(urlTNeed.getTitle())
+                    && dbUrl.getTitle().equals(urlTNeed.getTitle())
             );
         }
 
@@ -371,32 +371,34 @@ public class DefaultCrawler implements Crawler {
             String [] urlParts = testURL != null ? testURL.getUrl().split("/") : null;
             String fileName = urlParts != null ? urlParts[urlParts.length - 1] : "defaultFile";
             String downloadLocation = downloadFileLocation != null ? downloadFileLocation : "output";
-            tasks.add(new AssetResponseCallable(testURL.getUrl(), testURL.getTitle(), assetFetcher, requestHeaders, "", Paths.get(downloadLocation, fileName).toString() ));
+            tasks.add(new AssetResponseCallable(testURL.getUrl(), testURL.getTitle(), assetFetcher, requestHeaders, testURL.getUrl(), Paths.get(downloadLocation, fileName).toString() ));
         }
 
         try {
             // wait for all urls to verify
             List<Future<AssetResponse>> responses = service.invokeAll(tasks);
-
+            int responseCounter = 0;
+            Object [] arrayOfurlsThatNeedsVerification = urlsThatNeedsVerification.toArray();
             for (Future<AssetResponse> future : responses) {
                 if (!future.isCancelled()) {
                     AssetResponse response = future.get();
-                    CrawlerURL responseURL = new CrawlerURL(response.getUrl());
                     if (response.getResponseCode() == HttpStatus.SC_OK && response.getAssetSize() >= 0) {
                         // remove, way of catching interrupted / execution e
-                        urlsThatNeedsVerification.removeIf(urlTN -> urlTN.getUrl().equals(responseURL.getUrl()));
+                        int finalResponseCounter = responseCounter;
+                        urlsThatNeedsVerification.removeIf(urlTN -> urlTN.getUrl().equals(((CrawlerURL)arrayOfurlsThatNeedsVerification[finalResponseCounter]).getUrl()));
                         loadedAssets.add(response);
-                        verifiedUrls.add(new HTMLPageResponse(new CrawlerURL(response.getUrl()),
+                        verifiedUrls.add(new HTMLPageResponse((CrawlerURL) arrayOfurlsThatNeedsVerification[responseCounter],
                                 response.getResponseCode(), Collections.<String, String>emptyMap(),
                                 "", "", response.getAssetSize(), "", response.getFetchTime()));
                     } else if (response.getResponseCode() == HttpStatus.SC_OK) {
-                        urlsThatNeedsVerification.remove(responseURL);
+                        urlsThatNeedsVerification.remove(arrayOfurlsThatNeedsVerification[responseCounter]);
                     } else {
-                        nonWorkingUrls.add(new HTMLPageResponse(responseURL,
+                        nonWorkingUrls.add(new HTMLPageResponse((CrawlerURL)arrayOfurlsThatNeedsVerification[responseCounter],
                                 StatusCode.SC_SERVER_RESPONSE_UNKNOWN.getCode(),
                                 Collections.<String, String>emptyMap(), "", "", 0, "", -1));
                     }
                 }
+                responseCounter++;
             }
 
         } catch (InterruptedException | ExecutionException e) {

@@ -66,23 +66,25 @@ public class JsonClientRequestProcessor implements JsonRequestProcessor {
                 requestSettings.setAdditionalHeader(key, requestHeaders.get(key));
             }
 
+            requestSettings.setRequestBody(requestBody);
+
             final long start = System.currentTimeMillis();
 
-            final Page resp = webClient.getPage(requestSettings);
-            WebResponse webResp = resp.getWebResponse();
+            final WebResponse resp = webClient.loadWebResponse(requestSettings);
             final long fetchTime = System.currentTimeMillis() - start;
 
+            LOGGER.info(resp.getContentAsString());
             final Map<String, String> headersAndValues =
-                    fetchBody || !StatusCode.isResponseCodeOk(webResp.getStatusCode())
-                            ? getHeaders(webResp)
+                    fetchBody || !StatusCode.isResponseCodeOk(resp.getStatusCode())
+                            ? getHeaders(resp)
                             : Collections.<String, String>emptyMap();
 
-            final String body = fetchBody ? webResp.getContentAsString() : "";
-            final long size = webResp.getContentLength();
+            final String body = fetchBody ? resp.getContentAsString() : "";
+            final long size = resp.getContentLength();
             // TODO add log when null
             final String type =
-                    (webResp.getContentType() != null) ? webResp.getContentType() : "";
-            final int sc = webResp.getStatusCode();
+                    (resp.getContentType() != null) ? resp.getContentType() : "";
+            final int sc = resp.getStatusCode();
 
             return new HTMLPageResponse(crawlerURL, sc, headersAndValues, body, "", size, type, fetchTime);
         } catch (IOException e) {

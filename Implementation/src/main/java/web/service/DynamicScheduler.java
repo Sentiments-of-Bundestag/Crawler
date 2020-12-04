@@ -24,7 +24,6 @@ import repositories.Crawler.ConfigurationRepository;
 import repositories.Crawler.UrlRepository;
 import repositories.Person.PersonRepository;
 import repositories.ProtokollRepository;
-
 import javax.annotation.PostConstruct;
 import java.time.*;
 import java.util.*;
@@ -69,7 +68,12 @@ public class DynamicScheduler implements SchedulingConfigurer {
 
         dbConfig = configurationRepository.findById("notification_server_url");
         if (dbConfig.isEmpty()) {
-            configs.add(new Configuration("notification_server_url", "http://141.45.146.162:9001/data"));
+            configs.add(new Configuration("notification_server_url", "http://infosys2.f4.htw-berlin.de:9001/cme/data"));
+        }
+
+        dbConfig = configurationRepository.findById("notification_server_authorization");
+        if (dbConfig.isEmpty()) {
+            configs.add(new Configuration("notification_server_authorization", ""));
         }
 
         configurationRepository.saveAll(configs);
@@ -227,6 +231,11 @@ public class DynamicScheduler implements SchedulingConfigurer {
                 // Now send notification for all Protokolls in the db, where notified is not true
                 Optional<Configuration> notificationUrlConfig = configurationRepository.findById("notification_server_url");
                 String notificationUrl = notificationUrlConfig.get().getConfigValue();
+                Optional<Configuration> notificationAuthorizationConfig = configurationRepository.findById("notification_server_authorization");
+                String notificationAuthorizationString = notificationAuthorizationConfig.get().getConfigValue();
+                // Set credential
+                String encodedAuthorization = Base64.getEncoder().withoutPadding().encodeToString(notificationAuthorizationString.getBytes());
+
                 Set<Integer> protokollIds = new LinkedHashSet<>();
                 Set<Protokoll> protokolls = new LinkedHashSet<>(protokollRepository.findAll());
                 for (Protokoll protokoll : protokolls) {
@@ -238,7 +247,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
                     Notification notification = new Notification(protokollIds);
 
                     // Try to notify
-                    HTMLPageResponse notificationResponse = crawl.SendNotification(notificationUrl, notification);
+                    HTMLPageResponse notificationResponse = crawl.SendNotification(notificationUrl, encodedAuthorization, notification);
 
                     if (notificationResponse.getResponseCode() == HttpStatus.SC_OK) {
                         // Successful notified

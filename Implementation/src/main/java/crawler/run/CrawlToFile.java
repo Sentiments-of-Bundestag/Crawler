@@ -1,6 +1,5 @@
 package crawler.run;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Guice;
@@ -87,37 +86,42 @@ public class CrawlToFile extends AbstractCrawl {
         return result;
     }
 
-    public HTMLPageResponse SendNotification(String url, Notification notification) {
+    public HTMLPageResponse SendNotification(String url, String encodedAuthorization,  Notification notification) {
         ObjectMapper objectMapper = new ObjectMapper();
         // configure objectMapper for pretty input
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         final Injector injector = Guice.createInjector(new CrawlModule());
         final Crawler crawler = injector.getInstance(Crawler.class);
         CrawlerURL crawlerURL = new CrawlerURL(url);
-
-        String notificationString = "";
-        try {
-            // write notifications to string for request body
-            notificationString = objectMapper.writeValueAsString(notification);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        // write notifications to string for request body
+        String notificationIds = "";
+        int i = 0;
+        for (int notificationId : notification.getIds()) {
+            notificationIds = notificationIds + "\"" + notificationId + ( i < notification.getIds().size() - 1 ? "\",": "\"");
+            i++;
         }
 
+        notificationIds = "[" + notificationIds + "]";
+
         Map<String, String> requestHeaders = new HashMap<>();
-        requestHeaders.put("Accept", "*/*");
+        requestHeaders.put("accept", "application/json");
         requestHeaders.put("Content-Type", "application/json");
-        requestHeaders.put("Content-Length", String.valueOf(notificationString.length()));
         requestHeaders.put("Connection", "keep-alive");
-        requestHeaders.put("Accept-Encoding", "gzip,deflate,br");
+        requestHeaders.put("Accept-Encoding", "gzip,deflate");
         requestHeaders.put("Cache-Control", "no-cache");
         requestHeaders.put("Pragma", "no-cache");
+        requestHeaders.put("Authorization", "Basic " + encodedAuthorization + "==");
         requestHeaders.put("Origin", crawlerURL.getHost());
-        HTMLPageResponse response = crawler.sendNotification(crawlerURL, notificationString, requestHeaders);
+
+
+
+        HTMLPageResponse response = crawler.sendNotification(crawlerURL, notificationIds, requestHeaders);
 
         crawler.shutdown();
 
         return response;
     }
+
     /**
      * Get the options.
      *

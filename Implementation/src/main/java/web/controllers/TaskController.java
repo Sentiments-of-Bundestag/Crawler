@@ -101,7 +101,7 @@ public class TaskController {
         if (futureTask == null) {
             controllerResponse.setTitle("No task with id (" + taskId + ") founded!");
         } else {
-            controllerResponse.setTitle("Default Task have been successful scheduled!\n The task will be fired at 11pm every Monday, Tuesday, Wednesday, Thursday and Friday!");
+            controllerResponse.setTitle("Default Task have been scheduled!\n One time execution task, will start in 5 sec");
             Set<PlanedTask> planedTasks = new LinkedHashSet<>();
 
             planedTasks.add(new PlanedTask(taskId, "Task Nr. " + taskId, new Url("https://www.bundestag.de/services/opendata"), "ScheduledTask - Crawl, Status: " + futureTask.getValue().toString(), String.valueOf(futureTask.getKey()), null));

@@ -39,9 +39,9 @@ public class HTTPClientAssetFetcher implements AssetFetcher {
         try{
             assetSizeInByte = downloadUsingStream(url.getUrl(), assetPath);
             final long time = System.currentTimeMillis() - start;
-            return new AssetResponse(url.getUrl(), url.getReferer(), url.getTitle(), assetPath, HttpStatus.SC_OK, time, assetSizeInByte * 1024 / 1000);
+            return new AssetResponse(url.getUrl(), url.getTitle(), url.getReferer(), assetPath, HttpStatus.SC_OK, time, assetSizeInByte * 1024 / 1000);
         } catch (IOException e){
-            return new AssetResponse(url.getUrl(), url.getReferer(), url.getTitle(), assetPath, StatusCode.SC_SERVER_RESPONSE_UNKNOWN.getCode(), -1, assetSizeInByte);
+            return new AssetResponse(url.getUrl(), url.getTitle(), url.getReferer(), assetPath, StatusCode.SC_SERVER_RESPONSE_UNKNOWN.getCode(), -1, assetSizeInByte);
         }
     }
 

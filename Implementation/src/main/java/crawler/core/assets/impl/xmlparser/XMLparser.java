@@ -272,6 +272,7 @@ public class XMLparser {
                 id = Integer.parseInt(rednerString);
             } catch (NumberFormatException e) {
                 id = resolvePersonData(rednerString);
+                isContainingRedner(id);
                 if (id == -1) {
                     LOGGER.error("Person with the data: " + rednerString + " couldn't be resolved");
                 }
@@ -307,6 +308,10 @@ public class XMLparser {
                 id = person.getId();
             }
         }
+        return id;
+    }
+
+    private void isContainingRedner(int id){
         if(id != -1){
             final int finalId = id;
             Optional<Person> result = rednerList.stream().filter(person -> person.getId() == finalId).findAny();
@@ -317,9 +322,7 @@ public class XMLparser {
                 }
             }
         }
-        return id;
     }
-
 
     private AblaufspunktTyp getAblaufspunktTyp(Node node) {
         switch (node.getNodeName()) {

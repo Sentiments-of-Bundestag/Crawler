@@ -25,7 +25,10 @@ public class ParseUtilities {
         if(s == null || s.isBlank()){
             return null;
         }
-        Date result = parseDate(s, "dd.MM.yyyy");
+        Date result = parseDate(s, "dd.MM.yyyy HH:mm");
+        if(result == null){
+            result = parseDate(s, "dd.MM.yyyy");
+        }
         if(result == null){
             result = parseDate(s, "HH:mm");
         }

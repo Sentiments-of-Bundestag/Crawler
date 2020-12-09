@@ -170,11 +170,16 @@ public class XMLparser {
         //get sitzungNr
         String sitzungID = dbtplenarprotokoll.getAttribute(SITZUNG_NR_TAG);
 
+        String sitzungDatumText = dbtplenarprotokoll.getAttribute(SITZUNG_DATUM_TAG);
+
+        //get date of sitzung
+        Date sitzungDatum = ParseUtilities.stringToDate(sitzungDatumText);
+
         //get sitzung start time
-        Date sitzungStart = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_START_TIME_TAG));
+        Date sitzungStart = ParseUtilities.stringToDate(sitzungDatumText + " " + dbtplenarprotokoll.getAttribute(SITZUNG_START_TIME_TAG));
 
         //get sitzung end time
-        Date sitzungEnd = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_ENDE_TIME_TAG));
+        Date sitzungEnd = ParseUtilities.stringToDate(sitzungDatumText + " " + dbtplenarprotokoll.getAttribute(SITZUNG_ENDE_TIME_TAG));
 
         Sitzungsverlauf sitzung = new Sitzungsverlauf(Integer.parseInt(sitzungID), sitzungStart, sitzungEnd, ablaufspunkte);
 
@@ -183,9 +188,6 @@ public class XMLparser {
 
         //get nächste Sitzung Datum
         Date naechsteSitzung = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_NAECHSTE_DATUM));
-
-        //get date of sitzung
-        Date sitzungDatum = ParseUtilities.stringToDate(dbtplenarprotokoll.getAttribute(SITZUNG_DATUM_TAG));
 
         //get issn
         String issn = dbtplenarprotokoll.getAttribute(SITZUNG_ISSN_TAG);

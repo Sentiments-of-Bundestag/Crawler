@@ -14,13 +14,22 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Stack;
 
 public class PositionalXMLReader {
     final static String LINE_NUMBER_KEY_NAME = "lineNumber";
     private static final Logger LOGGER = LoggerFactory.getLogger(PositionalXMLReader.class);
 
+    public static Document readXML(InputStream in) throws IOException, SAXException {
+        return readXML(null, in);
+    }
+
     public static Document readXML(String path) throws IOException, SAXException {
+        return readXML(path, null);
+    }
+
+    private static Document readXML(String path, InputStream in) throws IOException, SAXException {
         final Document doc;
         SAXParser parser;
         try {
@@ -83,7 +92,12 @@ public class PositionalXMLReader {
                 }
             }
         };
-        parser.parse(path, handler);
+        if(path != null && !path.isEmpty()){
+            parser.parse(path, handler);
+        }else if (in != null){
+            parser.parse(in, handler);
+        }
+
 
         return doc;
     }

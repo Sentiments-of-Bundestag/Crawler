@@ -12,7 +12,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.io.File;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class XMLparser {
@@ -65,6 +71,9 @@ public class XMLparser {
     static final String SITZUNG_DATUM_TAG = "sitzung-datum";
     static final String WAHLPERIODE_PROTOCOL_TAG = "wahlperiode";
     private static final Logger LOGGER = LoggerFactory.getLogger(XMLparser.class);
+    private static final String DRUCKSACHE_TAG = "T_Drs";
+    private static final String T_FETT_TAG = "T_fett";
+    private static final String T_NAS_TAG = "T_NaS";
 
     private File file;
     private Document doc;
@@ -281,7 +290,7 @@ public class XMLparser {
         int id = -1;
 
         for (int i = 0; i < personDataSplit.length; i++) {
-            personDataSplit[i] = personDataSplit[i].replaceAll("[^a-zA-Z\\äöü]", "");
+            personDataSplit[i] = personDataSplit[i].replaceAll("[^a-zA-Z\\äöü\\-]", "");
         }
 
         for (Person person : personBaseData) {
@@ -296,6 +305,16 @@ public class XMLparser {
             if (highestEqualityScore < equalityScore) {
                 highestEqualityScore = equalityScore;
                 id = person.getId();
+            }
+        }
+        if(id != -1){
+            final int finalId = id;
+            Optional<Person> result = rednerList.stream().filter(person -> person.getId() == finalId).findAny();
+            if(result.isEmpty()){
+                Person person = getPersonById(finalId);
+                if(person != null){
+                    rednerList.add(person);
+                }
             }
         }
         return id;
@@ -409,12 +428,22 @@ public class XMLparser {
         if (redeTeilNode == null) {
             return null;
         }
+        //ignore some attributes
         if (redeTeilNode.getNodeType() == Node.ELEMENT_NODE) {
             if (checkAttribute((Element) redeTeilNode, ATTRIBUTE_KLASSE_TAG, REDNER_TAG)) {
                 return null;
             }
             if (checkAttribute((Element) redeTeilNode, ATTRIBUTE_KLASSE_TAG, PARAGRAF_N_TAG)) {
                 return null;
+            }
+            if (checkAttribute((Element) redeTeilNode, ATTRIBUTE_KLASSE_TAG, DRUCKSACHE_TAG)) {
+                return null;
+            }
+            if (checkAttribute((Element) redeTeilNode, ATTRIBUTE_KLASSE_TAG, T_FETT_TAG) || checkAttribute((Element) redeTeilNode, ATTRIBUTE_KLASSE_TAG, T_NAS_TAG)) {
+                String content = redeTeilNode.getTextContent();
+                if(content.contains("Drucksache")){
+                    return null;
+                }
             }
         }
 
@@ -487,6 +516,19 @@ public class XMLparser {
             doc.getDocumentElement().normalize();*/
 
             doc = PositionalXMLReader.readXML(file.getAbsolutePath());
+
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
+            StreamResult result = new StreamResult(new StringWriter());
+            DOMSource source = new DOMSource(doc);
+
+            transformer.transform(source, result);
+
+                InputStream in = new ByteArrayInputStream (result.getWriter().toString().getBytes(StandardCharsets.UTF_8));
+                doc = PositionalXMLReader.readXML(in);
+
 
 
         } catch (Exception e) {

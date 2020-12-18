@@ -203,7 +203,9 @@ public class DynamicScheduler implements SchedulingConfigurer {
             if (crawlerResult != null) {
                 Set<Url> dbUrls = new LinkedHashSet<Url>();
                 for (AssetResponse assetResponse : crawlerResult.getLoadedAssets()) {
-                    dbUrls.add(new Url(crawlerResult.getStartPointHost(), assetResponse.getUrl(), assetResponse.getTitle(), new Date(System.currentTimeMillis()), assetResponse.getResponseCode(), assetResponse.getAssetPath(), assetResponse.getAssetSize(), "Asset"));
+                    if (!assetResponse.getUrl().contains("dbtplenarprotokoll") && !assetResponse.getAssetPath().contains("dbtplenarprotokoll")){
+                        dbUrls.add(new Url(crawlerResult.getStartPointHost(), assetResponse.getUrl(), assetResponse.getTitle(), new Date(System.currentTimeMillis()), assetResponse.getResponseCode(), assetResponse.getAssetPath(), assetResponse.getAssetSize(), "Asset"));
+                    }
                 }
 
                 if (startUrl.isEmpty()) {

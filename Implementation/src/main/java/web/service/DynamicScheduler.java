@@ -240,7 +240,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
                 // Set credential
                 String encodedAuthorization = Base64.getEncoder().withoutPadding().encodeToString(notificationAuthorizationString.getBytes());
 
-                Set<Long> protokollIds = new LinkedHashSet<>();
+                Set<Integer> protokollIds = new LinkedHashSet<>();
                 Set<Protokoll> protokolls = new LinkedHashSet<>(protokollRepository.findAll());
                 for (Protokoll protokoll : protokolls) {
                     if (!protokoll.getNotified()) {

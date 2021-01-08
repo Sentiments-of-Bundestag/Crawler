@@ -113,8 +113,6 @@ public class CrawlToFile extends AbstractCrawl {
         requestHeaders.put("Authorization", "Basic " + encodedAuthorization + "==");
         requestHeaders.put("Origin", crawlerURL.getHost());
 
-
-
         HTMLPageResponse response = crawler.sendNotification(crawlerURL, notificationIds, requestHeaders);
 
         crawler.shutdown();

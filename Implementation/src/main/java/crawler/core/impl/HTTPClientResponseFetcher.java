@@ -61,7 +61,7 @@ public class HTTPClientResponseFetcher implements HTMLPageResponseFetcher {
             HtmlPage resp = webClient.getPage(url.getUrl());
 
             WebResponse webResp = resp.getWebResponse();
-            webClient.waitForBackgroundJavaScriptStartingBefore(200);
+            webClient.waitForBackgroundJavaScriptStartingBefore(2000);
             webClient.waitForBackgroundJavaScript(2000);
 
             // Get additional ajax hidden slides
@@ -82,11 +82,10 @@ public class HTTPClientResponseFetcher implements HTMLPageResponseFetcher {
 
             if (NextSlideButton != null && SlideNavi != null) {
                 String [] SlideNaviParts = SlideNavi.replace(" ", "").split("/");
-                while (NextSlideButton.getAttribute("aria-disabled").contains("false")
-                        && SlideNaviParts.length == 2 && Integer.parseInt(SlideNaviParts[0]) < Integer.parseInt(SlideNaviParts[1])) {
+                while (SlideNaviParts.length == 2 && Integer.parseInt(SlideNaviParts[0]) < Integer.parseInt(SlideNaviParts[1])) {
                     resp = NextSlideButton.click();
                     webResp = resp.getWebResponse();
-                    webClient.waitForBackgroundJavaScriptStartingBefore(200);
+                    webClient.waitForBackgroundJavaScriptStartingBefore(2000);
                     webClient.waitForBackgroundJavaScript(2000);
 
                     // Get additional ajax hidden slides

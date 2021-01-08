@@ -406,9 +406,8 @@ public class DefaultCrawler implements Crawler {
             }
 
         } catch (InterruptedException | ExecutionException e) {
-            // TODO add some logging
             LOGGER.error(e.getMessage());
-        } // TODO Auto-generated catch block
+        }
 
         return loadedAssets;
     }

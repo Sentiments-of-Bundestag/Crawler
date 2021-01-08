@@ -7,20 +7,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Notification {
-    Set<Long> ids;
+    Set<Integer> ids;
 
     public Notification() {}
 
-    public Notification(Set<Long> ids) {
+    public Notification(Set<Integer> ids) {
         this.ids = ids;
         this.ids = this.ids.stream().sorted(Comparator.naturalOrder()).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public Set<Long> getIds() {
+    public Set<Integer> getIds() {
         return ids;
     }
 
-    public void setIds(Set<Long> ids) {
+    public void setIds(Set<Integer> ids) {
         this.ids = ids;
     }
 

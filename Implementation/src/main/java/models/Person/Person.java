@@ -11,7 +11,7 @@ import java.util.Objects;
 public class Person {
 
     @Id
-    long id;
+    String id;
     String titel;
     String vorname;
     String nachname;
@@ -25,7 +25,7 @@ public class Person {
 
     public Person() {}
 
-    public Person(int id, String titel, String vorname, String nachname, String beruf, String geschlecht, Date geburtsdatum, String familienstand, String religion, String geburtsort, List<Fraktion> fraktionen) {
+    public Person(String id, String titel, String vorname, String nachname, String beruf, String geschlecht, Date geburtsdatum, String familienstand, String religion, String geburtsort, List<Fraktion> fraktionen) {
         this.id = id;
         this.titel = titel;
         this.vorname = vorname;
@@ -39,7 +39,7 @@ public class Person {
         this.fraktionen = fraktionen;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 

@@ -12,7 +12,7 @@ import java.util.Set;
 @Document
 public class Protokoll {
     @Id
-    long id;
+    int id;
     String ort;
     Date naechsteSitzung;
     Date sitzungDatum;
@@ -23,7 +23,7 @@ public class Protokoll {
 
     public Protokoll() {}
 
-    public Protokoll(long id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, Set<Person> rednerListe, Sitzungsverlauf sitzungsverlauf) {
+    public Protokoll(int id, String ort, Date naechsteSitzung, Date sitzungDatum, String issn, Set<Person> rednerListe, Sitzungsverlauf sitzungsverlauf) {
         this.id = id;
         this.ort = ort;
         this.naechsteSitzung = naechsteSitzung;
@@ -41,7 +41,7 @@ public class Protokoll {
         return rednerListe;
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 

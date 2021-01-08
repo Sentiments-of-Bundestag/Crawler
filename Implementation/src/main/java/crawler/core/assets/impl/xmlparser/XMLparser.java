@@ -453,8 +453,10 @@ public class XMLparser {
         }
 
         RedeTeilTyp redeTeilTyp;
+        String paragrafKlasse = null;
         if (redeTeilNode.getNodeName().equals(PARAGRAF_TAG)) {
             redeTeilTyp = RedeTeilTyp.PARAGRAF;
+            paragrafKlasse = ((Element)redeTeilNode).getAttribute(ATTRIBUTE_KLASSE_TAG);
         } else if (redeTeilNode.getNodeName().equals(KOMMENTAR_TAG)) {
             redeTeilTyp = RedeTeilTyp.KOMMENTAR;
         } else {
@@ -464,7 +466,7 @@ public class XMLparser {
 
         String text = redeTeilNode.getTextContent();
 
-        return new RedeTeil(text, lineNumber, redeTeilTyp);
+        return new RedeTeil(text, lineNumber, redeTeilTyp, paragrafKlasse);
     }
 
 

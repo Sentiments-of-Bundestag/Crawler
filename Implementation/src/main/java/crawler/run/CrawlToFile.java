@@ -57,7 +57,7 @@ public class CrawlToFile extends AbstractCrawl {
         final StringBuilder workingUrls = new StringBuilder();
         final StringBuilder nonWorkingUrls = new StringBuilder();
 
-        String separator = System.getProperty( "line.separator" );
+        String separator = System.getProperty("line.separator");
 
         for (CrawlerURL workingUrl : result.getUrls()) {
             workingUrls.append(workingUrl.getUrl()).append(separator);

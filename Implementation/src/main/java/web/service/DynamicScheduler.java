@@ -2,9 +2,11 @@ package web.service;
 
 
 import crawler.core.CrawlerResult;
+import crawler.core.HTMLPageResponse;
 import crawler.core.assets.AssetResponse;
 import crawler.run.CrawlToFile;
 import models.Crawler.Configuration;
+import models.Crawler.Notification;
 import models.Crawler.Url;
 import models.Person.Person;
 import models.Protokoll;
@@ -245,7 +247,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
                         protokollIds.add(protokoll.getId());
                     }
                 }
-                /*if (protokollIds.size() > 0) {
+                if (protokollIds.size() > 0) {
                     Notification notification = new Notification(protokollIds);
 
                     // Try to notify
@@ -260,7 +262,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
                     } else {
                         // Setup retry process or wait for the next crawl
                     }
-                }*/
+                }
             }
         } catch (IllegalArgumentException | ParseException e) {
             LOGGER.error(e.getMessage());

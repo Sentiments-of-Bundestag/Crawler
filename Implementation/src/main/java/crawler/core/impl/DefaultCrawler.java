@@ -434,5 +434,4 @@ public class DefaultCrawler implements Crawler {
                     + StatusCode.toFriendlyName(resp.getResponseCode()));
         return resp;
     }
-
 }

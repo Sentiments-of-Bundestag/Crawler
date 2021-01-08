@@ -11,9 +11,9 @@ public class Rede {
     String redeId;
     int zeileNr;
     List<RedeTeil> redeInhalt;
-    int rednerId;
+    long rednerId;
 
-    public Rede(String redeId, int zeileNr, List<RedeTeil> redeInhalt, int rednerId) {
+    public Rede(String redeId, int zeileNr, List<RedeTeil> redeInhalt, long rednerId) {
         this.redeId = redeId;
         this.zeileNr = zeileNr;
         this.redeInhalt = redeInhalt;
@@ -32,7 +32,7 @@ public class Rede {
         return redeInhalt;
     }
 
-    public int getRednerId() {
+    public long getRednerId() {
         return rednerId;
     }
 }

@@ -267,7 +267,7 @@ public class XMLparser {
             String rednerString = rednerStartpoints.get(arrStartPoints[i]);
 
             //check if it is a name or an id
-            int id;
+            long id;
             try {
                 id = Integer.parseInt(rednerString);
             } catch (NumberFormatException e) {
@@ -285,10 +285,10 @@ public class XMLparser {
         return reden;
     }
 
-    private int resolvePersonData(String personData) {
+    private long resolvePersonData(String personData) {
         String[] personDataSplit = personData.trim().toLowerCase().split("[\\s.]+");
         int highestEqualityScore = 0;
-        int id = -1;
+        long id = -1;
 
         for (int i = 0; i < personDataSplit.length; i++) {
             personDataSplit[i] = personDataSplit[i].replaceAll("[^a-zA-Z\\äöü\\-]", "");
@@ -311,9 +311,9 @@ public class XMLparser {
         return id;
     }
 
-    private void isContainingRedner(int id){
+    private void isContainingRedner(long id){
         if(id != -1){
-            final int finalId = id;
+            final long finalId = id;
             Optional<Person> result = rednerList.stream().filter(person -> person.getId() == finalId).findAny();
             if(result.isEmpty()){
                 Person person = getPersonById(finalId);
@@ -485,7 +485,7 @@ public class XMLparser {
         return rednerIdList;
     }
 
-    private Person getPersonById(int id) {
+    private Person getPersonById(long id) {
         if (personBaseData.isEmpty()) {
             return null;
         }

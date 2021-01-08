@@ -96,7 +96,7 @@ public class CrawlToFile extends AbstractCrawl {
         // write notifications to string for request body
         String notificationIds = "";
         int i = 0;
-        for (int notificationId : notification.getIds()) {
+        for (long notificationId : notification.getIds()) {
             notificationIds = notificationIds + "\"" + notificationId + ( i < notification.getIds().size() - 1 ? "\",": "\"");
             i++;
         }

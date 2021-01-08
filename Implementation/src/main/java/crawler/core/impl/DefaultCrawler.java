@@ -243,6 +243,10 @@ public class DefaultCrawler implements Crawler {
                         && response.getResponseType().indexOf("html") > 0) {
                     // we know that this links work
                     verifiedUrls.add(response);
+
+                    // Add all hidden slides with links
+                    var tests = response.getBody().body().getElementsByClass("slick-next slick-arrow");
+
                     final Set<CrawlerURL> allLinks = parser.get(response);
 
                     for (CrawlerURL link : allLinks) {

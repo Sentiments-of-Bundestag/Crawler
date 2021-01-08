@@ -1,22 +1,26 @@
 package models.Crawler;
 
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Notification {
-    Set<Integer> ids;
+    Set<Long> ids;
 
     public Notification() {}
 
-    public Notification(Set<Integer> ids) {
+    public Notification(Set<Long> ids) {
         this.ids = ids;
+        this.ids = this.ids.stream().sorted(Comparator.naturalOrder()).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public Set<Integer> getIds() {
+    public Set<Long> getIds() {
         return ids;
     }
 
-    public void setIds(Set<Integer> ids) {
+    public void setIds(Set<Long> ids) {
         this.ids = ids;
     }
 

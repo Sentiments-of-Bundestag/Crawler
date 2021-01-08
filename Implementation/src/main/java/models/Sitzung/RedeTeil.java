@@ -7,16 +7,20 @@ import java.util.Objects;
 @Document
 public class RedeTeil {
     String text;
+    String paragrafKlasse;
     int zeileNr;
     RedeTeilTyp typ;
 
     public RedeTeil() {}
 
-    public RedeTeil(String text, int zeileNr, RedeTeilTyp typ) {
+    public RedeTeil(String text, int zeileNr, RedeTeilTyp typ, String paragrafKlasse) {
         this.text = text;
         this.zeileNr = zeileNr;
         this.typ = typ;
+        this.paragrafKlasse = paragrafKlasse;
     }
+
+    public String getParagrafKlasse() {return paragrafKlasse;}
 
     public String getText() {
         return text;

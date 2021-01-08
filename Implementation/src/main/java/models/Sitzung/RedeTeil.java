@@ -7,7 +7,7 @@ import java.util.Objects;
 @Document
 public class RedeTeil {
     String text;
-    String paragrafKlasse;
+    String paragrafklasse;
     int zeileNr;
     RedeTeilTyp typ;
 
@@ -17,10 +17,10 @@ public class RedeTeil {
         this.text = text;
         this.zeileNr = zeileNr;
         this.typ = typ;
-        this.paragrafKlasse = paragrafKlasse;
+        this.paragrafklasse = paragrafKlasse;
     }
 
-    public String getParagrafKlasse() {return paragrafKlasse;}
+    public String getParagrafklasse() {return paragrafklasse;}
 
     public String getText() {
         return text;
@@ -53,20 +53,22 @@ public class RedeTeil {
         RedeTeil redeTeil = (RedeTeil) o;
         return zeileNr == redeTeil.zeileNr &&
                 text.equals(redeTeil.text) &&
-                typ.equals(redeTeil.typ);
+                paragrafklasse.equals(redeTeil.paragrafklasse) &&
+                typ == redeTeil.typ;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(text, zeileNr, typ);
+        return Objects.hash(text, paragrafklasse, zeileNr, typ);
     }
 
     @Override
     public String toString() {
         return "RedeTeil{" +
                 "text='" + text + '\'' +
+                ", paragrafklasse='" + paragrafklasse + '\'' +
                 ", zeileNr=" + zeileNr +
-                ", typ='" + typ + '\'' +
+                ", typ=" + typ +
                 '}';
     }
 }

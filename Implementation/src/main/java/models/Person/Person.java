@@ -128,7 +128,8 @@ public class Person {
         if (this == o) return true;
         if (!(o instanceof Person)) return false;
         Person person = (Person) o;
-        return titel.equals(person.titel) &&
+        return id.equals(person.id) &&
+                titel.equals(person.titel) &&
                 vorname.equals(person.vorname) &&
                 nachname.equals(person.nachname) &&
                 beruf.equals(person.beruf) &&
@@ -142,7 +143,7 @@ public class Person {
 
     @Override
     public int hashCode() {
-        return Objects.hash(titel, vorname, nachname, beruf, geschlecht, geburtsdatum, familienstand, religion, geburtsort, fraktionen);
+        return Objects.hash(id, titel, vorname, nachname, beruf, geschlecht, geburtsdatum, familienstand, religion, geburtsort, fraktionen);
     }
 
     @Override

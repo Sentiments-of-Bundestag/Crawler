@@ -316,9 +316,9 @@ public class XMLparser {
     }
 
     private void isContainingRedner(String id){
-        if(id != "-1"){
+        if(!id.equals("-1")){
             final String finalId = id;
-            Optional<Person> result = rednerList.stream().filter(person -> person.getId() == finalId).findAny();
+            Optional<Person> result = rednerList.stream().filter(person -> person.getId().equals(finalId)).findAny();
             if(result.isEmpty()){
                 Person person = getPersonById(finalId);
                 if(person != null){
@@ -495,7 +495,7 @@ public class XMLparser {
         }
         for (Person person :
                 personBaseData) {
-            if (person.getId() == id) {
+            if (person.getId().equals(id)) {
                 return person;
             }
         }

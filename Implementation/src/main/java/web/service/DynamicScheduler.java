@@ -34,7 +34,7 @@ import java.util.concurrent.ScheduledFuture;
 public class DynamicScheduler implements SchedulingConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicScheduler.class);
-    private static final int DEFAULT_SLEEP_RANGE = 14400; // correspond to 4 hours
+    private static final int DEFAULT_SLEEP_RANGE = 7200; // correspond to 4 hours
     private Random random = new Random();
 
     ScheduledTaskRegistrar scheduledTaskRegistrar;
@@ -78,12 +78,13 @@ public class DynamicScheduler implements SchedulingConfigurer {
         }
 
         configurationRepository.saveAll(configs);
+        this.scheduleDefaultCron();
     }
 
     public TaskScheduler poolScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("ThreadPoolTaskScheduler");
-        scheduler.setPoolSize(1);
+        scheduler.setPoolSize(3);
         scheduler.initialize();
         return scheduler;
     }
@@ -285,7 +286,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
         // Setup sleep time randomly
         int randomSleep = random.nextInt(DEFAULT_SLEEP_RANGE + 1) + 1;
         try {
-            Thread.sleep(randomSleep * 1000);
+            Thread.sleep(randomSleep * 100);
 
             // After the sleep run crawl-task
             scheduleSingleCrawlJob("default");

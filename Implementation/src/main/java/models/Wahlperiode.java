@@ -10,7 +10,7 @@ import java.util.Set;
 @Document
 public class Wahlperiode {
     @Id
-    int id;
+    long id;
     Date anfangDatum;
     Date endeDatum;
     Set<Protokoll> protokolle;
@@ -28,7 +28,7 @@ public class Wahlperiode {
         return protokolle;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 

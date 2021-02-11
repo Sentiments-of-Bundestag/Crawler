@@ -57,7 +57,7 @@ public class CrawlToFile extends AbstractCrawl {
         final StringBuilder workingUrls = new StringBuilder();
         final StringBuilder nonWorkingUrls = new StringBuilder();
 
-        String separator = System.getProperty( "line.separator" );
+        String separator = System.getProperty("line.separator");
 
         for (CrawlerURL workingUrl : result.getUrls()) {
             workingUrls.append(workingUrl.getUrl()).append(separator);
@@ -96,7 +96,7 @@ public class CrawlToFile extends AbstractCrawl {
         // write notifications to string for request body
         String notificationIds = "";
         int i = 0;
-        for (int notificationId : notification.getIds()) {
+        for (long notificationId : notification.getIds()) {
             notificationIds = notificationIds + "\"" + notificationId + ( i < notification.getIds().size() - 1 ? "\",": "\"");
             i++;
         }
@@ -112,8 +112,6 @@ public class CrawlToFile extends AbstractCrawl {
         requestHeaders.put("Pragma", "no-cache");
         requestHeaders.put("Authorization", "Basic " + encodedAuthorization + "==");
         requestHeaders.put("Origin", crawlerURL.getHost());
-
-
 
         HTMLPageResponse response = crawler.sendNotification(crawlerURL, notificationIds, requestHeaders);
 

@@ -3,6 +3,7 @@ package crawler.core.impl;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebResponse;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.google.inject.Inject;
@@ -16,10 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Fetch urls by a HTTPClient. Note: Will only fetch response headers for resources that fails and
@@ -60,11 +58,51 @@ public class HTTPClientResponseFetcher implements HTMLPageResponseFetcher {
         final long start = System.currentTimeMillis();
 
         try {
-            final HtmlPage resp = webClient.getPage(url.getUrl());
+            HtmlPage resp = webClient.getPage(url.getUrl());
 
             WebResponse webResp = resp.getWebResponse();
-            webClient.waitForBackgroundJavaScriptStartingBefore(200);
+            webClient.waitForBackgroundJavaScriptStartingBefore(2000);
             webClient.waitForBackgroundJavaScript(2000);
+
+            // Get additional ajax hidden slides
+            List<HtmlElement> SlideDivs = resp.getBody().getElementsByAttribute("div", "id", "bt-collapse-543410");
+
+            HtmlElement NextSlideButton = null;
+            String SlideNavi = null;
+            if (SlideDivs.size() > 0) {
+                List<HtmlElement> SlideNavis = SlideDivs.get(0).getElementsByAttribute("p", "class", "bt-slider-index");
+                if (SlideNavis.size() > 0) {
+                    SlideNavi = SlideNavis.get(0).getFirstChild().asText();
+                }
+                List<HtmlElement> NextSlideButtons = SlideDivs.get(0).getElementsByAttribute("button", "class", "slick-next slick-arrow");
+                if (NextSlideButtons.size() > 0) {
+                    NextSlideButton = NextSlideButtons.get(0);
+                }
+            }
+
+            if (NextSlideButton != null && SlideNavi != null) {
+                String [] SlideNaviParts = SlideNavi.replace(" ", "").split("/");
+                while (SlideNaviParts.length == 2 && Integer.parseInt(SlideNaviParts[0]) < Integer.parseInt(SlideNaviParts[1])) {
+                    resp = NextSlideButton.click();
+                    webResp = resp.getWebResponse();
+                    webClient.waitForBackgroundJavaScriptStartingBefore(2000);
+                    webClient.waitForBackgroundJavaScript(2000);
+
+                    // Get additional ajax hidden slides
+                    List<HtmlElement> SlideDivsTemp = resp.getBody().getElementsByAttribute("div", "id", "bt-collapse-543410");
+                    if (SlideDivsTemp.size() > 0) {
+                        List<HtmlElement> SlideNavis = SlideDivs.get(0).getElementsByAttribute("p", "class", "bt-slider-index");
+                        if (SlideNavis.size() > 0) {
+                            SlideNavi = SlideNavis.get(0).getFirstChild().asText();
+                            SlideNaviParts = SlideNavi.replace(" ", "").split("/");
+                        }
+                        List<HtmlElement> NextSlideButtons = SlideDivs.get(0).getElementsByAttribute("button", "class", "slick-next slick-arrow");
+                        if (NextSlideButtons.size() > 0) {
+                            NextSlideButton = NextSlideButtons.get(0);
+                        }
+                    }
+                }
+            }
 
             final long fetchTime = System.currentTimeMillis() - start;
 

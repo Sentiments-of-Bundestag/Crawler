@@ -11,7 +11,7 @@ import java.util.Objects;
 public class Person {
 
     @Id
-    int id;
+    String id;
     String titel;
     String vorname;
     String nachname;
@@ -25,7 +25,7 @@ public class Person {
 
     public Person() {}
 
-    public Person(int id, String titel, String vorname, String nachname, String beruf, String geschlecht, Date geburtsdatum, String familienstand, String religion, String geburtsort, List<Fraktion> fraktionen) {
+    public Person(String id, String titel, String vorname, String nachname, String beruf, String geschlecht, Date geburtsdatum, String familienstand, String religion, String geburtsort, List<Fraktion> fraktionen) {
         this.id = id;
         this.titel = titel;
         this.vorname = vorname;
@@ -39,7 +39,7 @@ public class Person {
         this.fraktionen = fraktionen;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
@@ -128,7 +128,8 @@ public class Person {
         if (this == o) return true;
         if (!(o instanceof Person)) return false;
         Person person = (Person) o;
-        return titel.equals(person.titel) &&
+        return id.equals(person.id) &&
+                titel.equals(person.titel) &&
                 vorname.equals(person.vorname) &&
                 nachname.equals(person.nachname) &&
                 beruf.equals(person.beruf) &&
@@ -142,7 +143,7 @@ public class Person {
 
     @Override
     public int hashCode() {
-        return Objects.hash(titel, vorname, nachname, beruf, geschlecht, geburtsdatum, familienstand, religion, geburtsort, fraktionen);
+        return Objects.hash(id, titel, vorname, nachname, beruf, geschlecht, geburtsdatum, familienstand, religion, geburtsort, fraktionen);
     }
 
     @Override

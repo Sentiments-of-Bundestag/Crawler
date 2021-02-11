@@ -243,6 +243,10 @@ public class DefaultCrawler implements Crawler {
                         && response.getResponseType().indexOf("html") > 0) {
                     // we know that this links work
                     verifiedUrls.add(response);
+
+                    // Add all hidden slides with links
+                    var tests = response.getBody().body().getElementsByClass("slick-next slick-arrow");
+
                     final Set<CrawlerURL> allLinks = parser.get(response);
 
                     for (CrawlerURL link : allLinks) {
@@ -402,9 +406,8 @@ public class DefaultCrawler implements Crawler {
             }
 
         } catch (InterruptedException | ExecutionException e) {
-            // TODO add some logging
             LOGGER.error(e.getMessage());
-        } // TODO Auto-generated catch block
+        }
 
         return loadedAssets;
     }
@@ -430,5 +433,4 @@ public class DefaultCrawler implements Crawler {
                     + StatusCode.toFriendlyName(resp.getResponseCode()));
         return resp;
     }
-
 }

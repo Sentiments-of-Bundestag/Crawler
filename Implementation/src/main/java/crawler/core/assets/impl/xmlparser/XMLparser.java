@@ -19,7 +19,10 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 public class XMLparser {
     //base data tags
@@ -106,7 +109,7 @@ public class XMLparser {
             if (mdbNode.getNodeType() == Node.ELEMENT_NODE) {
                 Element mdbElement = (Element) mdbNode;
                 //get ID of persons
-                int id = Integer.parseInt(getPersonID(mdbElement));
+                String id = getPersonID(mdbElement);
                 //get properties of xml object <NAME>
                 Map<String, String> personProperties = getNameProperties(mdbElement);
                 //get properties of xml object <BIOGRAPHISCHE_ANGABEN>
@@ -134,11 +137,11 @@ public class XMLparser {
         Element dbtplenarprotokoll = doc.getDocumentElement();
 
         //get rednerliste
-        List<Integer> rednerIdList = getRednerIDList();
+        List<String> rednerIdList = getRednerIDList();
 
         //TODO: Add a new person for ids which can't be found in the base data person list but exist in the "rednerListe"
 
-        for (int id : rednerIdList) {
+        for (String id : rednerIdList) {
             Person person = getPersonById(id);
             if (person != null) {
                 rednerList.add(person);
@@ -192,10 +195,9 @@ public class XMLparser {
         //get issn
         String issn = dbtplenarprotokoll.getAttribute(SITZUNG_ISSN_TAG);
 
-        //get wahlperiode
-        String wahlperiode = dbtplenarprotokoll.getAttribute(WAHLPERIODE_PROTOCOL_TAG);
-
-        return new Protokoll(Integer.parseInt((wahlperiode+sitzungID)), ort, naechsteSitzung, sitzungDatum, issn, rednerList, sitzung);
+        String [] PathParts = splitPath(path);
+        String [] FileNameParts = PathParts[PathParts.length - 1].split("-");
+        return new Protokoll(Integer.parseInt(FileNameParts[0]), ort, naechsteSitzung, sitzungDatum, issn, rednerList, sitzung);
     }
 
     private Ablaufspunkt getAblaufspunkt(Node node) {
@@ -269,13 +271,13 @@ public class XMLparser {
             String rednerString = rednerStartpoints.get(arrStartPoints[i]);
 
             //check if it is a name or an id
-            int id;
+            String id;
             try {
-                id = Integer.parseInt(rednerString);
+                id = rednerString;
             } catch (NumberFormatException e) {
                 id = resolvePersonData(rednerString);
                 isContainingRedner(id);
-                if (id == -1) {
+                if (id.equals("-1")) {
                     LOGGER.error("Person with the data: " + rednerString + " couldn't be resolved");
                 }
             }
@@ -287,10 +289,10 @@ public class XMLparser {
         return reden;
     }
 
-    private int resolvePersonData(String personData) {
+    private String resolvePersonData(String personData) {
         String[] personDataSplit = personData.trim().toLowerCase().split("[\\s.]+");
         int highestEqualityScore = 0;
-        int id = -1;
+        String id = "-1";
 
         for (int i = 0; i < personDataSplit.length; i++) {
             personDataSplit[i] = personDataSplit[i].replaceAll("[^a-zA-Z\\äöü\\-]", "");
@@ -313,10 +315,10 @@ public class XMLparser {
         return id;
     }
 
-    private void isContainingRedner(int id){
-        if(id != -1){
-            final int finalId = id;
-            Optional<Person> result = rednerList.stream().filter(person -> person.getId() == finalId).findAny();
+    private void isContainingRedner(String id){
+        if(!id.equals("-1")){
+            final String finalId = id;
+            Optional<Person> result = rednerList.stream().filter(person -> person.getId().equals(finalId)).findAny();
             if(result.isEmpty()){
                 Person person = getPersonById(finalId);
                 if(person != null){
@@ -387,7 +389,6 @@ public class XMLparser {
 
         return result;
     }
-
 
     private List<RedeTeil> getAllRedeTeil(Node node) {
         List<RedeTeil> redeTeile = new ArrayList<>();
@@ -469,9 +470,8 @@ public class XMLparser {
         return new RedeTeil(text, lineNumber, redeTeilTyp, paragrafKlasse);
     }
 
-
-    private List<Integer> getRednerIDList() {
-        List<Integer> rednerIdList = new ArrayList<>();
+    private List<String> getRednerIDList() {
+        List<String> rednerIdList = new ArrayList<>();
         NodeList rednerNodeList = doc.getElementsByTagName(REDNER_LIST_TAG);
 
         for (int i = 0; i < rednerNodeList.getLength(); i++) {
@@ -482,20 +482,20 @@ public class XMLparser {
                 for (int j = 0; j < redner.getLength(); j++) {
                     Node rednerNode = redner.item(j);
                     String rednerID = ((Element) rednerNode).getAttribute(ATTRIBUTE_ID_TAG);
-                    rednerIdList.add(Integer.parseInt(rednerID));
+                    rednerIdList.add(rednerID);
                 }
             }
         }
         return rednerIdList;
     }
 
-    private Person getPersonById(int id) {
+    private Person getPersonById(String id) {
         if (personBaseData.isEmpty()) {
             return null;
         }
         for (Person person :
                 personBaseData) {
-            if (person.getId() == id) {
+            if (person.getId().equals(id)) {
                 return person;
             }
         }
@@ -598,7 +598,6 @@ public class XMLparser {
         return fraktionen;
     }
 
-
     private Map<String, String> getNameProperties(Element mdbElement) {
         Map<String, String> nameProperties = new HashMap<>();
 
@@ -613,5 +612,11 @@ public class XMLparser {
             }
         }
         return nameProperties;
+    }
+
+    public static String[] splitPath(String pathString) {
+        Path path = Paths.get(pathString);
+        return StreamSupport.stream(path.spliterator(), false).map(Path::toString)
+                .toArray(String[]::new);
     }
 }

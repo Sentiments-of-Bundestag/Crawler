@@ -1,7 +1,10 @@
 package models.Crawler;
 
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Notification {
     Set<Integer> ids;
@@ -10,6 +13,7 @@ public class Notification {
 
     public Notification(Set<Integer> ids) {
         this.ids = ids;
+        this.ids = this.ids.stream().sorted(Comparator.naturalOrder()).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public Set<Integer> getIds() {

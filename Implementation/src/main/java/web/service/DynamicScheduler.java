@@ -24,6 +24,7 @@ import repositories.Crawler.ConfigurationRepository;
 import repositories.Crawler.UrlRepository;
 import repositories.Person.PersonRepository;
 import repositories.ProtokollRepository;
+
 import javax.annotation.PostConstruct;
 import java.time.*;
 import java.util.*;
@@ -33,7 +34,7 @@ import java.util.concurrent.ScheduledFuture;
 public class DynamicScheduler implements SchedulingConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicScheduler.class);
-    private static final int DEFAULT_SLEEP_RANGE = 14400; // correspond to 4 hours
+    private static final int DEFAULT_SLEEP_RANGE = 7200; // correspond to 4 hours
     private Random random = new Random();
 
     ScheduledTaskRegistrar scheduledTaskRegistrar;
@@ -77,12 +78,13 @@ public class DynamicScheduler implements SchedulingConfigurer {
         }
 
         configurationRepository.saveAll(configs);
+        this.scheduleDefaultCron();
     }
 
     public TaskScheduler poolScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("ThreadPoolTaskScheduler");
-        scheduler.setPoolSize(1);
+        scheduler.setPoolSize(3);
         scheduler.initialize();
         return scheduler;
     }
@@ -200,10 +202,13 @@ public class DynamicScheduler implements SchedulingConfigurer {
             final CrawlToFile crawl = new CrawlToFile(args);
             Set<Person> dbStammdaten = new LinkedHashSet<>(personRepository.findAll());
             CrawlerResult crawlerResult = crawl.crawl(new LinkedHashSet<>(urlRepository.findAll()), dbStammdaten, true);
+
             if (crawlerResult != null) {
                 Set<Url> dbUrls = new LinkedHashSet<Url>();
                 for (AssetResponse assetResponse : crawlerResult.getLoadedAssets()) {
-                    dbUrls.add(new Url(crawlerResult.getStartPointHost(), assetResponse.getUrl(), assetResponse.getTitle(), new Date(System.currentTimeMillis()), assetResponse.getResponseCode(), assetResponse.getAssetPath(), assetResponse.getAssetSize(), "Asset"));
+                    if (!assetResponse.getUrl().contains("dbtplenarprotokoll") && !assetResponse.getAssetPath().contains("dbtplenarprotokoll")){
+                        dbUrls.add(new Url(crawlerResult.getStartPointHost(), assetResponse.getUrl(), assetResponse.getTitle(), new Date(System.currentTimeMillis()), assetResponse.getResponseCode(), assetResponse.getAssetPath(), assetResponse.getAssetSize(), "Asset"));
+                    }
                 }
 
                 if (startUrl.isEmpty()) {
@@ -281,7 +286,7 @@ public class DynamicScheduler implements SchedulingConfigurer {
         // Setup sleep time randomly
         int randomSleep = random.nextInt(DEFAULT_SLEEP_RANGE + 1) + 1;
         try {
-            Thread.sleep(randomSleep * 1000);
+            Thread.sleep(randomSleep * 100);
 
             // After the sleep run crawl-task
             scheduleSingleCrawlJob("default");
